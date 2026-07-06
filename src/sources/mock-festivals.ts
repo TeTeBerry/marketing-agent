@@ -20,8 +20,8 @@ export const mockFestivals: Festival[] = [
     headlineArtists: [
       { name: 'Martin Garrix', genreLabel: 'Big Room' },
       { name: 'Swedish House Mafia', genreLabel: 'Progressive House' },
-      { name: 'Dimitri Vegas & Like Mike', genreLabel: 'Big Room' },
       { name: 'Steve Aoki', genreLabel: 'Electro House' },
+      { name: 'Dimitri Vegas & Like Mike', genreLabel: 'Big Room' },
       { name: 'Infected Mushroom', genreLabel: 'Psytrance' },
       { name: 'Vini Vici', genreLabel: 'Psytrance' },
     ],
