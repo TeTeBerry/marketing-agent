@@ -21,11 +21,11 @@ export const env = {
   ),
   internalApiKey: requireEnv('INTERNAL_API_KEY'),
   brandVoice:
-    process.env.BRAND_VOICE?.trim() ??
+    process.env.BRAND_VOICE?.trim() ||
     'Raven: sharp, festival-savvy, community-first. We help ravers discover lineups, plan trips, and find their crew — never corporate, never cringe.',
-  contentType: (process.env.CONTENT_TYPE?.trim() ??
+  contentType: (process.env.CONTENT_TYPE?.trim() ||
     'news') as MarketingContentType,
-  language: process.env.LANGUAGE?.trim() ?? 'en',
+  language: process.env.LANGUAGE?.trim() || 'en',
 };
 
 export function marketingAiEndpoint(): string {

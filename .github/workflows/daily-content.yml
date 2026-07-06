@@ -16,7 +16,6 @@ jobs:
     timeout-minutes: 45
     permissions:
       contents: write
-      issues: write
 
     steps:
       - name: Checkout
@@ -25,13 +24,14 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: '22'
           cache: npm
 
       - name: Install dependencies
         run: npm ci
 
       - name: Generate daily content plan
+        id: daily
         env:
           BACKEND_INTERNAL_API_URL: ${{ secrets.BACKEND_INTERNAL_API_URL }}
           INTERNAL_API_KEY: ${{ secrets.INTERNAL_API_KEY }}
@@ -40,37 +40,62 @@ jobs:
           LANGUAGE: ${{ vars.LANGUAGE }}
         run: npm run daily
 
+      - name: Resolve report file
+        id: report
+        if: success()
+        run: |
+          set -euo pipefail
+          REPORT_FILE=$(ls -1 generated/daily/*.md | sort | tail -1)
+          echo "report_file=${REPORT_FILE}" >> "$GITHUB_OUTPUT"
+          echo "report_date=$(basename "${REPORT_FILE}" .md)" >> "$GITHUB_OUTPUT"
+
       - name: Commit report to repository
-        id: commit
+        if: success()
         run: |
           set -euo pipefail
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
 
-          REPORT_FILE=$(ls -1 generated/daily/*.md | sort | tail -1)
-          if [ -z "${REPORT_FILE}" ]; then
-            echo "No report file found"
-            exit 1
-          fi
-
-          echo "report_file=${REPORT_FILE}" >> "$GITHUB_OUTPUT"
-          echo "report_date=$(basename "${REPORT_FILE}" .md)" >> "$GITHUB_OUTPUT"
-
+          REPORT_FILE="${{ steps.report.outputs.report_file }}"
           git add "${REPORT_FILE}"
           if git diff --staged --quiet; then
-            echo "committed=false" >> "$GITHUB_OUTPUT"
             echo "No changes to commit"
           else
             git commit -m "chore(daily): content plan for $(basename "${REPORT_FILE}" .md)"
             git push origin "HEAD:${GITHUB_REF_NAME}"
-            echo "committed=true" >> "$GITHUB_OUTPUT"
           fi
 
-      - name: Notify via GitHub Issue
+      - name: Upload report artifact
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: daily-report-${{ steps.report.outputs.report_date }}
+          path: ${{ steps.report.outputs.report_file }}
+          if-no-files-found: error
+
+      - name: Notify Feishu
+        if: always()
         env:
-          GH_TOKEN: ${{ github.token }}
-          GITHUB_REPOSITORY: ${{ github.repository }}
-          GITHUB_REF_NAME: ${{ github.ref_name }}
-          GITHUB_RUN_ID: ${{ github.run_id }}
-          GITHUB_RUN_NUMBER: ${{ github.run_number }}
-        run: bash scripts/github-publish-daily.sh "${{ steps.commit.outputs.report_file }}"
+          FEISHU_WEBHOOK_URL: ${{ secrets.FEISHU_WEBHOOK_URL }}
+        run: |
+          set -euo pipefail
+          REPO_URL="https://github.com/${GITHUB_REPOSITORY}"
+          RUN_URL="${REPO_URL}/actions/runs/${GITHUB_RUN_ID}"
+          REPORT_FILE="${{ steps.report.outputs.report_file }}"
+          REPORT_URL=""
+          if [ -n "${REPORT_FILE}" ] && [ -f "${REPORT_FILE}" ]; then
+            REPORT_URL="${REPO_URL}/blob/${GITHUB_REF_NAME}/${REPORT_FILE}"
+          fi
+
+          if [ "${{ steps.daily.outcome }}" = "success" ] && [ -n "${REPORT_FILE}" ]; then
+            node scripts/notify-feishu.mjs \
+              --status success \
+              --report "${REPORT_FILE}" \
+              --report-url "${REPORT_URL}" \
+              --run-url "${RUN_URL}"
+          else
+            node scripts/notify-feishu.mjs \
+              --status failure \
+              --error "Daily generation failed. Check Actions logs and backend secrets." \
+              --run-url "${RUN_URL}"
+          fi
