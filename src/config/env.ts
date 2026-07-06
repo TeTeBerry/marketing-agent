@@ -35,3 +35,11 @@ export function marketingAiEndpoint(): string {
     : '/api/internal/marketing-ai/generate-platform-content';
   return `${base}${path}`;
 }
+
+export function upcomingFestivalsEndpoint(): string {
+  const base = env.backendInternalApiUrl;
+  const path = base.endsWith('/api')
+    ? '/internal/marketing-ai/upcoming-festivals'
+    : '/api/internal/marketing-ai/upcoming-festivals';
+  return `${base}${path}`;
+}

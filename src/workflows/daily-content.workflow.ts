@@ -9,7 +9,7 @@ import {
   totalPlannedPosts,
 } from '../planner/content-planner.js';
 import { writeDailyMarkdown } from '../outputs/daily-markdown.js';
-import { mockFestivals } from '../sources/mock-festivals.js';
+import { loadUpcomingFestivals } from '../sources/festival-source.js';
 import type {
   ContentPlan,
   Festival,
@@ -94,7 +94,7 @@ export async function runDailyContentWorkflow(): Promise<{
   outputPath: string;
   failures: PlannedContentFailure[];
 }> {
-  const festivals = mockFestivals;
+  const festivals = await loadUpcomingFestivals();
   const today = new Date();
 
   await assertBackendReachable();
