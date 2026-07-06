@@ -52,6 +52,12 @@ export type PlatformContentResult = {
   contentStyle?: string;
   notes?: string;
   visualBrief?: VisualBrief;
+  publishTime?: string;
+  carousel?: Array<{
+    slide: number;
+    headline: string;
+    body: string;
+  }>;
 };
 
 export type ApiSuccessResponse<T> = {
@@ -70,7 +76,16 @@ export type PlannedContentEntry = {
   plan: ContentPlan;
   festival: Festival | null;
   result: PlatformContentResult;
+  instagramPackage?: import('./instagram-publishing-package.js').InstagramPublishingPackage;
 };
+
+export type {
+  GenerateInstagramAssetsRequest,
+  InstagramAssetsResult,
+  InstagramCarouselSlide,
+  InstagramGeneratedImage,
+  InstagramPublishingPackage,
+} from './instagram-publishing-package.js';
 
 export type { ContentPlan, PlanContentType } from './content-plan.js';
 export type { VisualBrief } from './visual-brief.js';

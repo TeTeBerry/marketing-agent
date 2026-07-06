@@ -1,4 +1,5 @@
 import { generatePlatformContent } from '../api/marketing-ai-client.js';
+import { generateInstagramAssets } from '../api/instagram-assets-client.js';
 import { env } from '../config/env.js';
 import {
   planDailyContent,
@@ -6,7 +7,11 @@ import {
 } from '../planner/content-planner.js';
 import { writeDailyMarkdown } from '../outputs/daily-markdown.js';
 import { mockFestivals } from '../sources/mock-festivals.js';
-import type { Festival, PlannedContentEntry } from '../types/index.js';
+import type { ContentPlan, Festival, PlannedContentEntry } from '../types/index.js';
+import {
+  buildInstagramPublishingPackage,
+  resolveInstagramBrandStyle,
+} from '../writers/build-instagram-package.js';
 import { mapPlanToApiRequest } from '../writers/plan-to-api.js';
 import {
   isPromotionalXContent,
@@ -23,11 +28,48 @@ function resolveFestival(
   return festivals.find((festival) => festival.id === festivalId) ?? null;
 }
 
+async function generateInstagramEntry(
+  plan: ContentPlan,
+  festival: Festival | null,
+): Promise<PlannedContentEntry> {
+  console.log(`  → ${plan.platform} · ${plan.contentType} · ${plan.topic}`);
+
+  const apiRequest = mapPlanToApiRequest(plan, festival, env.brandVoice, env.language);
+  const result = await generatePlatformContent(apiRequest);
+
+  const carousel = result.carousel ?? [];
+  if (carousel.length === 0) {
+    throw new Error('Instagram content missing carousel slides');
+  }
+
+  console.log('  → generating Instagram carousel images…');
+
+  const assets = await generateInstagramAssets({
+    festival: apiRequest.festival,
+    caption: result.content,
+    carousel,
+    brandStyle: resolveInstagramBrandStyle(result),
+    language: env.language,
+  });
+
+  const instagramPackage = buildInstagramPublishingPackage({
+    topic: plan.topic,
+    result,
+    images: assets.images,
+  });
+
+  return { plan, festival, result, instagramPackage };
+}
+
 async function generateForPlan(
   entry: PlannedContentEntry['plan'],
   festivals: Festival[],
 ): Promise<PlannedContentEntry> {
   const festival = resolveFestival(festivals, entry.festivalId);
+
+  if (entry.platform === 'instagram') {
+    return generateInstagramEntry(entry, festival);
+  }
 
   console.log(`  → ${entry.platform} · ${entry.contentType} · ${entry.topic}`);
 

@@ -3,6 +3,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import type { MarketingPlatform, PlannedContentEntry } from '../types/index.js';
 import type { VisualBrief } from '../types/visual-brief.js';
+import { renderInstagramPublishingPackage } from './instagram-markdown.js';
 import {
   isPromotionalXContent,
   X_FOUNDER_NOTE,
@@ -134,10 +135,25 @@ function renderPost(entry: PlannedContentEntry, postNumber: number): string[] {
   return lines;
 }
 
+function renderInstagramSection(entries: PlannedContentEntry[]): string[] {
+  const instagramEntry = entries.find(
+    (entry) => entry.plan.platform === 'instagram',
+  );
+  if (!instagramEntry?.instagramPackage) {
+    return [];
+  }
+
+  return renderInstagramPublishingPackage(instagramEntry.instagramPackage);
+}
+
 function renderPlatformSection(
   platform: MarketingPlatform,
   entries: PlannedContentEntry[],
 ): string[] {
+  if (platform === 'instagram') {
+    return renderInstagramSection(entries);
+  }
+
   const platformEntries = entries.filter(
     (entry) => entry.plan.platform === platform,
   );
