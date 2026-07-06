@@ -21,7 +21,9 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
         with:
+          ref: ${{ github.ref_name }}
           fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -60,32 +62,14 @@ jobs:
 
       - name: Commit report to repository
         if: success()
-        run: |
-          set -euo pipefail
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-
-          REPORT_FILE="${{ steps.report.outputs.report_file }}"
-          git add "${REPORT_FILE}"
-          if git diff --staged --quiet; then
-            echo "No changes to commit"
-            exit 0
-          fi
-
-          git commit -m "chore(daily): content plan for $(basename "${REPORT_FILE}" .md)"
-
-          for attempt in 1 2 3 4 5; do
-            git pull --rebase origin "${GITHUB_REF_NAME}"
-            if git push origin "HEAD:${GITHUB_REF_NAME}"; then
-              echo "Pushed to ${GITHUB_REF_NAME}"
-              exit 0
-            fi
-            echo "Push rejected (attempt ${attempt}/5), retrying after rebase..."
-            sleep 3
-          done
-
-          echo "Failed to push after 5 attempts"
-          exit 1
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          branch: ${{ github.ref_name }}
+          commit_message: chore(daily): content plan for ${{ steps.report.outputs.report_date }}
+          file_pattern: ${{ steps.report.outputs.report_file }}
+          commit_user_name: github-actions[bot]
+          commit_user_email: 41898282+github-actions[bot]@users.noreply.github.com
+          commit_author: github-actions[bot] <41898282+github-actions[bot]@users.noreply.github.com>
 
       - name: Upload report artifact
         if: success()

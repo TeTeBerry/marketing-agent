@@ -18,6 +18,8 @@ export type InstagramAssetFestival = {
   location?: string;
   country?: string;
   dates?: string;
+  startDate?: string;
+  endDate?: string;
   lineupArtists?: FestivalLineupArtist[];
   lineupSchedulePublished?: boolean;
   timeline?: FestivalTimelineEntry[];

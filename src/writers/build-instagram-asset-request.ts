@@ -88,6 +88,8 @@ export function buildInstagramAssetRequest(input: {
       location: festival.location,
       country: festival.country,
       dates: formatFestivalDates(festival),
+      startDate: festival.startDate,
+      endDate: festival.endDate,
       lineupArtists: festival.headlineArtists,
       lineupSchedulePublished,
       timeline: lineupSchedulePublished

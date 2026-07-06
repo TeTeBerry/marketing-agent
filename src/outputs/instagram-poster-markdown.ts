@@ -1,160 +1,118 @@
-import { getSyncWebHomeCopy } from '../content/sync-web-home-copy.js';
-import type {
-  InstagramAssetRequest,
-  FestivalTimelineEntry,
-} from '../types/instagram-publishing-package.js';
+import { getFestivalPosterCopy } from '../content/festival-poster-copy.js';
+import type { InstagramAssetRequest } from '../types/instagram-publishing-package.js';
 
-function buildFestivalMeta(festival: InstagramAssetRequest['festival']): string {
-  const cityLine = [festival.location, festival.country]
-    .filter(Boolean)
-    .join(', ');
+const COUNTRY_FLAG_EMOJI: Record<string, string> = {
+  Thailand: '🇹🇭',
+  Japan: '🇯🇵',
+  'South Korea': '🇰🇷',
+  Korea: '🇰🇷',
+  Belgium: '🇧🇪',
+  Netherlands: '🇳🇱',
+  'United States': '🇺🇸',
+  USA: '🇺🇸',
+  'United Kingdom': '🇬🇧',
+  UK: '🇬🇧',
+  Romania: '🇷🇴',
+  UAE: '🇦🇪',
+  China: '🇨🇳',
+};
 
-  const placeLine = [festival.venue?.trim(), cityLine]
-    .filter(Boolean)
-    .join(' · ');
+function resolveCountryFlag(country?: string): string {
+  if (!country?.trim()) {
+    return '';
+  }
 
-  return [placeLine, festival.dates].filter(Boolean).join(' · ');
+  return COUNTRY_FLAG_EMOJI[country.trim()] ?? '';
 }
 
-function buildFlightRoute(
+function formatPosterDates(
   festival: InstagramAssetRequest['festival'],
   language: string,
 ): string {
-  const destination = festival.location?.trim() || festival.country?.trim() || 'festival city';
-  if (language.toLowerCase().startsWith('zh')) {
-    return `飞往${destination} · 抵达日`;
+  if (!festival.startDate || !festival.endDate) {
+    return festival.dates?.trim() ?? '';
   }
 
-  return `Fly in → ${destination} · arrival day`;
-}
+  const start = new Date(`${festival.startDate}T00:00:00Z`);
+  const end = new Date(`${festival.endDate}T00:00:00Z`);
+  const year = start.getUTCFullYear();
+  const locale = language.toLowerCase().startsWith('zh') ? 'zh-CN' : 'en-US';
+  const startMonth = start.toLocaleString(locale, {
+    month: 'long',
+    timeZone: 'UTC',
+  });
+  const endMonth = end.toLocaleString(locale, {
+    month: 'long',
+    timeZone: 'UTC',
+  });
 
-function buildHotelName(
-  festival: InstagramAssetRequest['festival'],
-  language: string,
-): string {
-  const venue = festival.location?.trim() || 'venue';
-  if (language.toLowerCase().startsWith('zh')) {
-    return `${venue} 附近`;
+  if (startMonth === endMonth) {
+    if (language.toLowerCase().startsWith('zh')) {
+      return `${year}年${startMonth}${start.getUTCDate()}–${end.getUTCDate()}日`;
+    }
+
+    return `${startMonth} ${start.getUTCDate()}–${end.getUTCDate()}, ${year}`;
   }
 
-  return `Near ${venue}`;
+  if (language.toLowerCase().startsWith('zh')) {
+    return `${year}年${startMonth}${start.getUTCDate()}日–${endMonth}${end.getUTCDate()}日`;
+  }
+
+  return `${startMonth} ${start.getUTCDate()}–${endMonth} ${end.getUTCDate()}, ${year}`;
 }
 
-function renderHeadliners(
-  festival: InstagramAssetRequest['festival'],
-  language: string,
-): string[] {
+function formatLocationBlock(festival: InstagramAssetRequest['festival']): string[] {
+  const lines: string[] = ['📍'];
+
+  if (festival.venue?.trim()) {
+    lines.push(festival.venue.trim());
+  }
+
+  const cityLine = [festival.location, festival.country].filter(Boolean).join(', ');
+  if (cityLine) {
+    lines.push(cityLine);
+  }
+
+  return lines;
+}
+
+function formatLineupArtists(festival: InstagramAssetRequest['festival']): string[] {
   const artists = festival.lineupArtists ?? [];
   if (artists.length === 0) {
     return [];
   }
 
-  const label = language.toLowerCase().startsWith('zh') ? '阵容亮点' : 'Headliners';
-  const lines = [`### ${label}`, ''];
-
-  for (const artist of artists) {
-    const style = artist.genreLabel.trim();
-    lines.push(
-      style ? `- **${artist.name}** · ${style}` : `- **${artist.name}**`,
-    );
-  }
-
-  lines.push('');
-  return lines;
-}
-
-function formatTimelineEntry(entry: FestivalTimelineEntry): string {
-  const style = entry.genreLabel.trim();
-  if (style) {
-    return `${entry.time} · ${entry.artistName} · ${style} · ${entry.stageLabel}`;
-  }
-
-  return `${entry.time} · ${entry.artistName} · ${entry.stageLabel}`;
-}
-
-function renderTimeline(
-  festival: InstagramAssetRequest['festival'],
-  language: string,
-): string[] {
-  const entries = festival.timeline ?? [];
-  if (!festival.lineupSchedulePublished || entries.length === 0) {
-    return [];
-  }
-
-  const copy = getSyncWebHomeCopy(language);
-  return [
-    `### ${copy.tabs.timeline}`,
-    '',
-    ...entries.map((entry) => `- ${formatTimelineEntry(entry)}`),
-    '',
-  ];
-}
-
-function renderPackingEssentials(
-  copy: ReturnType<typeof getSyncWebHomeCopy>,
-): string[] {
-  return [
-    `### ${copy.tabs.packing}`,
-    '',
-    `**${copy.packing.essentialsLabel}**`,
-    '',
-    ...copy.packing.essentials.map((item) => `- ${item}`),
-    '',
-  ];
+  return artists.slice(0, 3).map((artist) => artist.name);
 }
 
 export function buildInstagramPosterMarkdown(
   input: InstagramAssetRequest,
   language = 'en',
 ): string {
-  const copy = getSyncWebHomeCopy(language);
+  const copy = getFestivalPosterCopy(language);
   const festival = input.festival;
-  const festivalMeta = buildFestivalMeta(festival);
-  const budgetTotal = language.toLowerCase().startsWith('zh') ? '¥4,200' : '$580';
-  const showTimeline = Boolean(
-    festival.lineupSchedulePublished && (festival.timeline?.length ?? 0) > 0,
-  );
-
+  const flag = resolveCountryFlag(festival.country);
+  const titleSuffix = flag ? ` ${flag}` : '';
   const lines = [
-    `# ${festival.name.trim()}`,
+    `# ${festival.name.trim()}${titleSuffix}`,
     '',
-    `> ${festivalMeta}`,
-    `> ${copy.heroLead}`,
+    `## ${copy.sectionTitle}`,
     '',
-    copy.imagePlaceholder,
     '',
-    `## ${copy.plannerTitle}`,
+    ...formatLocationBlock(festival),
     '',
-    copy.plannerLead,
     '',
-    `**${festival.name.trim()}** · ${festivalMeta}`,
+    `📅 ${formatPosterDates(festival, language)}`,
     '',
-    `### ${copy.tabs.trip}`,
-    '',
-    `1. **${copy.trip.flightLabel}** — ${buildFlightRoute(festival, language)}`,
-    `2. **${copy.trip.hotelLabel}** — ${buildHotelName(festival, language)} · ${copy.trip.hotelDetail}`,
-    `3. **${copy.trip.shuttleLabel}** — ${copy.trip.shuttleDetail}`,
     '',
   ];
 
-  if (showTimeline) {
-    lines.push(...renderTimeline(festival, language));
-  } else {
-    lines.push(...renderHeadliners(festival, language));
+  const lineup = formatLineupArtists(festival);
+  if (lineup.length > 0) {
+    lines.push(copy.lineupHeading, '', ...lineup, '', '');
   }
 
-  lines.push(
-    `### ${copy.tabs.budget}`,
-    '',
-    `**${budgetTotal}** · ${copy.budget.perPerson}`,
-    '',
-  );
-
-  for (const [index, item] of copy.budget.items.entries()) {
-    lines.push(`${index + 1}. ${item}`);
-  }
-
-  lines.push('', ...renderPackingEssentials(copy), '---', '', '@Raven', '', `_${copy.footerTagline}_`, '');
+  lines.push(...copy.guideItems, '', '', copy.follow, '', copy.tagline, '');
 
   return lines.join('\n');
 }

@@ -14,7 +14,7 @@ const baseRequest = {
 };
 
 describe('buildInstagramPosterMarkdown', () => {
-  it('renders timeline with artist styles when schedule is published', () => {
+  it('renders the festival travel guide poster template', () => {
     const markdown = buildInstagramPosterMarkdown(
       {
         ...baseRequest,
@@ -24,73 +24,49 @@ describe('buildInstagramPosterMarkdown', () => {
           venue: 'Wisdom Valley',
           location: 'Pattaya',
           country: 'Thailand',
-          dates: 'Dec 12–14',
-          lineupSchedulePublished: true,
-          lineupArtists: [
-            { name: 'Amelie Lens', genreLabel: 'Techno' },
-            { name: 'Charlotte de Witte', genreLabel: 'Techno' },
-          ],
-          timeline: [
-            {
-              time: '6:30 PM',
-              artistName: 'Amelie Lens',
-              stageLabel: 'Main Stage',
-              genreLabel: 'Techno',
-            },
-            {
-              time: '9:00 PM',
-              artistName: 'Charlotte de Witte',
-              stageLabel: 'Main Stage',
-              genreLabel: 'Techno',
-            },
-          ],
-        },
-      },
-      'en',
-    );
-
-    assert.match(markdown, /### Timeline/);
-    assert.match(markdown, /6:30 PM · Amelie Lens · Techno · Main Stage/);
-    assert.doesNotMatch(markdown, /### Headliners/);
-    assert.doesNotMatch(markdown, /Squad of 3/);
-    assert.doesNotMatch(markdown, /Travel \+ vibe guide/);
-    assert.doesNotMatch(markdown, /8 \/ 12 items packed/);
-    assert.doesNotMatch(markdown, /Comfortable sneakers/);
-    assert.doesNotMatch(markdown, /### Calendar/);
-  });
-
-  it('renders headliners under trip plan when lineup is announced without timetable', () => {
-    const markdown = buildInstagramPosterMarkdown(
-      {
-        ...baseRequest,
-        festival: {
-          id: 'tomorrowland-thailand-2026',
-          name: 'Tomorrowland Thailand 2026',
-          venue: 'Wisdom Valley',
-          location: 'Pattaya',
-          country: 'Thailand',
-          dates: 'Dec 11–13',
-          lineupSchedulePublished: false,
+          startDate: '2026-12-11',
+          endDate: '2026-12-13',
           lineupArtists: [
             { name: 'Martin Garrix', genreLabel: 'Big Room' },
             { name: 'Swedish House Mafia', genreLabel: 'Progressive House' },
+            { name: 'Steve Aoki', genreLabel: 'Electro House' },
           ],
         },
       },
       'en',
     );
 
-    const tripIndex = markdown.indexOf('### Trip Plan');
-    const headlinersIndex = markdown.indexOf('### Headliners');
-    const budgetIndex = markdown.indexOf('### Budget');
+    assert.match(markdown, /^# Tomorrowland Thailand 2026 🇹🇭/);
+    assert.match(markdown, /## Festival Travel Guide/);
+    assert.match(markdown, /📍\nWisdom Valley\nPattaya, Thailand/);
+    assert.match(markdown, /📅 December 11–13, 2026/);
+    assert.match(markdown, /🎧 Lineup Highlights\n\nMartin Garrix\nSwedish House Mafia\nSteve Aoki/);
+    assert.match(markdown, /🏨 Where To Stay/);
+    assert.match(markdown, /Follow @Raven/);
+    assert.match(markdown, /Your guide to the world's best festivals 🌎/);
+    assert.doesNotMatch(markdown, /Trip Plan/);
+  });
 
-    assert.ok(tripIndex >= 0 && headlinersIndex > tripIndex);
-    assert.ok(headlinersIndex < budgetIndex);
-    assert.match(markdown, /- \*\*Martin Garrix\*\* · Big Room/);
-    assert.match(
-      markdown,
-      /\*\*Tomorrowland Thailand 2026\*\* · Wisdom Valley · Pattaya, Thailand · Dec 11–13/,
+  it('omits lineup section when no artists are available', () => {
+    const markdown = buildInstagramPosterMarkdown(
+      {
+        ...baseRequest,
+        festival: {
+          id: 'ultra-japan-2026',
+          name: 'Ultra Japan 2026',
+          venue: 'Odaiba',
+          location: 'Tokyo',
+          country: 'Japan',
+          startDate: '2026-09-19',
+          endDate: '2026-09-20',
+          lineupArtists: [],
+        },
+      },
+      'en',
     );
-    assert.doesNotMatch(markdown, /### Timeline/);
+
+    assert.match(markdown, /# Ultra Japan 2026 🇯🇵/);
+    assert.doesNotMatch(markdown, /Lineup Highlights/);
+    assert.match(markdown, /✈️ How To Get There/);
   });
 });
