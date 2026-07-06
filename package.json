@@ -1,0 +1,24 @@
+{
+  "name": "marketing-agent",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Raven internal ops automation — daily marketing content via sync-app-backend Marketing AI API",
+  "scripts": {
+    "daily": "tsx src/cli/daily.ts",
+    "dev": "tsx watch src/cli/daily.ts",
+    "typecheck": "tsc --noEmit",
+    "test": "tsx --test test/content-planner.test.ts"
+  },
+  "dependencies": {
+    "dotenv": "^16.4.7"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.2",
+    "tsx": "^4.19.2",
+    "typescript": "^5.7.2"
+  },
+  "engines": {
+    "node": ">=18.18.0"
+  }
+}

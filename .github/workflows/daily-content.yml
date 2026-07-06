@@ -1,0 +1,76 @@
+name: Daily Content Plan
+
+on:
+  schedule:
+    - cron: '0 8 * * *'
+      timezone: Asia/Shanghai
+  workflow_dispatch:
+
+concurrency:
+  group: daily-content-plan
+  cancel-in-progress: false
+
+jobs:
+  generate-and-publish:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    permissions:
+      contents: write
+      issues: write
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Generate daily content plan
+        env:
+          BACKEND_INTERNAL_API_URL: ${{ secrets.BACKEND_INTERNAL_API_URL }}
+          INTERNAL_API_KEY: ${{ secrets.INTERNAL_API_KEY }}
+          BRAND_VOICE: ${{ vars.BRAND_VOICE }}
+          CONTENT_TYPE: ${{ vars.CONTENT_TYPE }}
+          LANGUAGE: ${{ vars.LANGUAGE }}
+        run: npm run daily
+
+      - name: Commit report to repository
+        id: commit
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          REPORT_FILE=$(ls -1 generated/daily/*.md | sort | tail -1)
+          if [ -z "${REPORT_FILE}" ]; then
+            echo "No report file found"
+            exit 1
+          fi
+
+          echo "report_file=${REPORT_FILE}" >> "$GITHUB_OUTPUT"
+          echo "report_date=$(basename "${REPORT_FILE}" .md)" >> "$GITHUB_OUTPUT"
+
+          git add "${REPORT_FILE}"
+          if git diff --staged --quiet; then
+            echo "committed=false" >> "$GITHUB_OUTPUT"
+            echo "No changes to commit"
+          else
+            git commit -m "chore(daily): content plan for $(basename "${REPORT_FILE}" .md)"
+            git push origin "HEAD:${GITHUB_REF_NAME}"
+            echo "committed=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Notify via GitHub Issue
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+          GITHUB_REF_NAME: ${{ github.ref_name }}
+          GITHUB_RUN_ID: ${{ github.run_id }}
+          GITHUB_RUN_NUMBER: ${{ github.run_number }}
+        run: bash scripts/github-publish-daily.sh "${{ steps.commit.outputs.report_file }}"
