@@ -6,9 +6,6 @@ import {
   type InstagramPublishingPackage,
 } from '../types/instagram-publishing-package.js';
 
-const DEFAULT_BRAND_STYLE =
-  'Premium dark purple/blue gradient, minimal festival travel, Raven brand — not nightclub flyer';
-
 type BuildInstagramPackageInput = {
   topic: string;
   result: PlatformContentResult;
@@ -20,22 +17,13 @@ function mergeCarouselWithImages(
   images: InstagramGeneratedImage[],
 ): InstagramCarouselSlide[] {
   const imageBySlide = new Map(
-    images.map((image) => [
-      image.slide,
-      image.cloudPath || image.imageUrl,
-    ]),
+    images.map((image) => [image.slide, image.imagePath]),
   );
 
   return carousel.map((slide) => ({
     ...slide,
     imagePath: imageBySlide.get(slide.slide),
   }));
-}
-
-export function resolveInstagramBrandStyle(
-  result: PlatformContentResult,
-): string {
-  return result.visualBrief?.referenceStyle?.trim() || DEFAULT_BRAND_STYLE;
 }
 
 export function buildInstagramPublishingPackage(

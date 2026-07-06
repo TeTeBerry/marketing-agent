@@ -8,10 +8,8 @@ import {
 import { writeDailyMarkdown } from '../outputs/daily-markdown.js';
 import { mockFestivals } from '../sources/mock-festivals.js';
 import type { ContentPlan, Festival, PlannedContentEntry } from '../types/index.js';
-import {
-  buildInstagramPublishingPackage,
-  resolveInstagramBrandStyle,
-} from '../writers/build-instagram-package.js';
+import { buildInstagramAssetRequest } from '../writers/build-instagram-asset-request.js';
+import { buildInstagramPublishingPackage } from '../writers/build-instagram-package.js';
 import { mapPlanToApiRequest } from '../writers/plan-to-api.js';
 import {
   isPromotionalXContent,
@@ -41,16 +39,14 @@ async function generateInstagramEntry(
   if (carousel.length === 0) {
     throw new Error('Instagram content missing carousel slides');
   }
+  if (!festival) {
+    throw new Error('Instagram content requires a festival');
+  }
 
   console.log('  → generating Instagram carousel images…');
 
-  const assets = await generateInstagramAssets({
-    festival: apiRequest.festival,
-    caption: result.content,
-    carousel,
-    brandStyle: resolveInstagramBrandStyle(result),
-    language: env.language,
-  });
+  const assetRequest = buildInstagramAssetRequest({ plan, festival, result });
+  const assets = await generateInstagramAssets(assetRequest);
 
   const instagramPackage = buildInstagramPublishingPackage({
     topic: plan.topic,

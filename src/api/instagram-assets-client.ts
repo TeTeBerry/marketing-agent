@@ -1,7 +1,7 @@
 import { env } from '../config/env.js';
 import type {
   ApiSuccessResponse,
-  GenerateInstagramAssetsRequest,
+  InstagramAssetRequest,
   InstagramAssetsResult,
 } from '../types/index.js';
 import { MarketingAiApiError } from './marketing-ai-client.js';
@@ -15,7 +15,7 @@ function instagramAssetsEndpoint(): string {
 }
 
 export async function generateInstagramAssets(
-  request: GenerateInstagramAssetsRequest,
+  request: InstagramAssetRequest,
 ): Promise<InstagramAssetsResult> {
   const url = instagramAssetsEndpoint();
 

@@ -80,7 +80,10 @@ export type PlannedContentEntry = {
 };
 
 export type {
-  GenerateInstagramAssetsRequest,
+  CarouselSlideAssetInput,
+  InstagramAssetBrandStyle,
+  InstagramAssetPublishingPackage,
+  InstagramAssetRequest,
   InstagramAssetsResult,
   InstagramCarouselSlide,
   InstagramGeneratedImage,

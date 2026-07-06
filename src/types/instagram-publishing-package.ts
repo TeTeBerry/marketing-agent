@@ -1,3 +1,46 @@
+export type InstagramAssetFestival = {
+  id: string;
+  name: string;
+  location?: string;
+  country?: string;
+  dates?: string;
+  genres?: string[];
+  artists?: string[];
+};
+
+export type InstagramAssetPublishingPackage = {
+  topic: string;
+  caption: string;
+  hashtags: string[];
+  publishTime?: string;
+};
+
+export type InstagramAssetBrandStyle = {
+  brandName: 'Raven';
+  mood: 'premium' | 'minimal' | 'editorial';
+  background: 'dark';
+  colorPalette: string[];
+  typography: 'clean sans-serif';
+  visualTone: string[];
+  avoid: string[];
+};
+
+export type CarouselSlideAssetInput = {
+  slide: number;
+  headline: string;
+  body: string;
+  imageDescription: string;
+  overlayText: string[];
+  aspectRatio: '4:5';
+};
+
+export type InstagramAssetRequest = {
+  festival: InstagramAssetFestival;
+  publishingPackage: InstagramAssetPublishingPackage;
+  brandStyle: InstagramAssetBrandStyle;
+  carousel: CarouselSlideAssetInput[];
+};
+
 export type InstagramCarouselSlide = {
   slide: number;
   headline: string;
@@ -8,8 +51,8 @@ export type InstagramCarouselSlide = {
 export type InstagramGeneratedImage = {
   slide: number;
   title: string;
-  imageUrl: string;
-  cloudPath: string;
+  imagePath: string;
+  promptUsed?: string;
 };
 
 export type InstagramPublishingPackage = {
@@ -29,16 +72,26 @@ export const INSTAGRAM_PUBLISHING_CHECKLIST = [
   'Paste hashtags',
 ] as const;
 
-export type GenerateInstagramAssetsRequest = {
-  festival: Record<string, unknown>;
-  caption: string;
-  carousel: Array<{
-    slide: number;
-    headline: string;
-    body: string;
-  }>;
-  brandStyle: string;
-  language: string;
+export const DEFAULT_RAVEN_BRAND_STYLE: InstagramAssetBrandStyle = {
+  brandName: 'Raven',
+  mood: 'premium',
+  background: 'dark',
+  colorPalette: ['deep purple', 'electric blue', 'black'],
+  typography: 'clean sans-serif',
+  visualTone: [
+    'festival travel',
+    'minimal',
+    'premium',
+    'editorial',
+    'not nightclub flyer',
+  ],
+  avoid: [
+    'crowded party photos',
+    'cheap EDM flyer style',
+    'too many neon elements',
+    'overly busy layout',
+    'unreadable small text',
+  ],
 };
 
 export type InstagramAssetsResult = {
