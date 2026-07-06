@@ -13,6 +13,39 @@ const baseRequest = {
   carousel: [],
 };
 
+const expectedTomorrowlandPoster = `# Tomorrowland Thailand 2026 🇹🇭
+
+## Festival Travel Guide
+
+📍 Wisdom Valley, Pattaya
+📅 December 11–13, 2026
+
+━━━━━━━━━━━━
+
+🎧 LINEUP HIGHLIGHTS
+
+Martin Garrix
+Swedish House Mafia
+Steve Aoki
+
+━━━━━━━━━━━━
+
+🏨 STAY
+Hotels & best areas near the festival
+
+✈️ TRAVEL
+Flights · Transport · Planning
+
+💰 BUDGET
+Estimated trip cost guide
+
+━━━━━━━━━━━━
+
+FOLLOW @RAVEN
+
+Your guide to the world's best festivals 🌎
+`;
+
 describe('buildInstagramPosterMarkdown', () => {
   it('renders the festival travel guide poster template', () => {
     const markdown = buildInstagramPosterMarkdown(
@@ -36,15 +69,9 @@ describe('buildInstagramPosterMarkdown', () => {
       'en',
     );
 
-    assert.match(markdown, /^# Tomorrowland Thailand 2026 🇹🇭/);
-    assert.match(markdown, /## Festival Travel Guide/);
-    assert.match(markdown, /📍\nWisdom Valley\nPattaya, Thailand/);
-    assert.match(markdown, /📅 December 11–13, 2026/);
-    assert.match(markdown, /🎧 Lineup Highlights\n\nMartin Garrix\nSwedish House Mafia\nSteve Aoki/);
-    assert.match(markdown, /🏨 Where To Stay/);
-    assert.match(markdown, /Follow @Raven/);
-    assert.match(markdown, /Your guide to the world's best festivals 🌎/);
+    assert.equal(markdown, expectedTomorrowlandPoster);
     assert.doesNotMatch(markdown, /Trip Plan/);
+    assert.doesNotMatch(markdown, /Festival Tips/);
   });
 
   it('omits lineup section when no artists are available', () => {
@@ -66,7 +93,8 @@ describe('buildInstagramPosterMarkdown', () => {
     );
 
     assert.match(markdown, /# Ultra Japan 2026 🇯🇵/);
-    assert.doesNotMatch(markdown, /Lineup Highlights/);
-    assert.match(markdown, /✈️ How To Get There/);
+    assert.doesNotMatch(markdown, /LINEUP HIGHLIGHTS/);
+    assert.match(markdown, /📍 Odaiba, Tokyo/);
+    assert.match(markdown, /✈️ TRAVEL\nFlights · Transport · Planning/);
   });
 });

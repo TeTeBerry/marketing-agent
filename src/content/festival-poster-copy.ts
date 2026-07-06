@@ -1,34 +1,58 @@
+export type FestivalPosterGuideItem = {
+  heading: string;
+  subtitle: string;
+};
+
 export type FestivalPosterCopy = {
   sectionTitle: string;
+  separator: string;
   lineupHeading: string;
-  guideItems: string[];
+  guideItems: FestivalPosterGuideItem[];
   follow: string;
   tagline: string;
 };
 
 const EN_COPY: FestivalPosterCopy = {
   sectionTitle: 'Festival Travel Guide',
-  lineupHeading: '🎧 Lineup Highlights',
+  separator: '━━━━━━━━━━━━',
+  lineupHeading: '🎧 LINEUP HIGHLIGHTS',
   guideItems: [
-    '🏨 Where To Stay',
-    '✈️ How To Get There',
-    '💰 Trip Budget Guide',
-    '🎟️ Festival Tips',
+    {
+      heading: '🏨 STAY',
+      subtitle: 'Hotels & best areas near the festival',
+    },
+    {
+      heading: '✈️ TRAVEL',
+      subtitle: 'Flights · Transport · Planning',
+    },
+    {
+      heading: '💰 BUDGET',
+      subtitle: 'Estimated trip cost guide',
+    },
   ],
-  follow: 'Follow @Raven',
+  follow: 'FOLLOW @RAVEN',
   tagline: "Your guide to the world's best festivals 🌎",
 };
 
 const ZH_COPY: FestivalPosterCopy = {
   sectionTitle: '电音节旅行指南',
+  separator: '━━━━━━━━━━━━',
   lineupHeading: '🎧 阵容亮点',
   guideItems: [
-    '🏨 住宿推荐',
-    '✈️ 交通攻略',
-    '💰 预算参考',
-    '🎟️ 现场贴士',
+    {
+      heading: '🏨 住宿',
+      subtitle: '音乐节周边酒店与推荐区域',
+    },
+    {
+      heading: '✈️ 交通',
+      subtitle: '航班 · 当地交通 · 行程规划',
+    },
+    {
+      heading: '💰 预算',
+      subtitle: '预估旅行花费参考',
+    },
   ],
-  follow: '关注 @Raven',
+  follow: '关注 @RAVEN',
   tagline: '带你打卡全球电音节 🌎',
 };
 

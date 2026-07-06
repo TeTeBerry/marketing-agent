@@ -8,7 +8,7 @@ on:
 
 concurrency:
   group: daily-content-plan
-  cancel-in-progress: true
+  cancel-in-progress: false
 
 jobs:
   generate-and-publish:
@@ -60,16 +60,41 @@ jobs:
           echo "report_file=${REPORT_FILE}" >> "$GITHUB_OUTPUT"
           echo "report_date=$(basename "${REPORT_FILE}" .md)" >> "$GITHUB_OUTPUT"
 
-      - name: Commit report to repository
+      - name: Commit and push report
         if: success()
-        uses: stefanzweifel/git-auto-commit-action@v5
-        with:
-          branch: ${{ github.ref_name }}
-          commit_message: chore(daily): content plan for ${{ steps.report.outputs.report_date }}
-          file_pattern: ${{ steps.report.outputs.report_file }}
-          commit_user_name: github-actions[bot]
-          commit_user_email: 41898282+github-actions[bot]@users.noreply.github.com
-          commit_author: github-actions[bot] <41898282+github-actions[bot]@users.noreply.github.com>
+        env:
+          BRANCH: ${{ github.ref_name }}
+          REPORT_FILE: ${{ steps.report.outputs.report_file }}
+          REPORT_DATE: ${{ steps.report.outputs.report_date }}
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          git fetch origin "${BRANCH}"
+          git pull --rebase origin "${BRANCH}"
+
+          git add "${REPORT_FILE}"
+          if git diff --staged --quiet; then
+            echo "No changes to commit for ${REPORT_FILE}"
+            exit 0
+          fi
+
+          git commit -m "chore(daily): content plan for ${REPORT_DATE}"
+
+          for attempt in 1 2 3 4 5; do
+            if git push origin "HEAD:${BRANCH}"; then
+              echo "Push succeeded on attempt ${attempt}"
+              exit 0
+            fi
+
+            echo "Push rejected (attempt ${attempt}), rebasing onto origin/${BRANCH}..."
+            git pull --rebase origin "${BRANCH}"
+            sleep $((attempt * 2))
+          done
+
+          echo "Push failed after 5 attempts"
+          exit 1
 
       - name: Upload report artifact
         if: success()

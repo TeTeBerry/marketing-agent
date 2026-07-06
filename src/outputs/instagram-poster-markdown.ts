@@ -61,19 +61,9 @@ function formatPosterDates(
   return `${startMonth} ${start.getUTCDate()}–${endMonth} ${end.getUTCDate()}, ${year}`;
 }
 
-function formatLocationBlock(festival: InstagramAssetRequest['festival']): string[] {
-  const lines: string[] = ['📍'];
-
-  if (festival.venue?.trim()) {
-    lines.push(festival.venue.trim());
-  }
-
-  const cityLine = [festival.location, festival.country].filter(Boolean).join(', ');
-  if (cityLine) {
-    lines.push(cityLine);
-  }
-
-  return lines;
+function formatLocationLine(festival: InstagramAssetRequest['festival']): string {
+  const place = [festival.venue?.trim(), festival.location?.trim()].filter(Boolean).join(', ');
+  return place ? `📍 ${place}` : '';
 }
 
 function formatLineupArtists(festival: InstagramAssetRequest['festival']): string[] {
@@ -85,6 +75,22 @@ function formatLineupArtists(festival: InstagramAssetRequest['festival']): strin
   return artists.slice(0, 3).map((artist) => artist.name);
 }
 
+function formatGuideItems(
+  guideItems: ReturnType<typeof getFestivalPosterCopy>['guideItems'],
+): string[] {
+  const lines: string[] = [];
+
+  for (const item of guideItems) {
+    lines.push(item.heading, item.subtitle, '');
+  }
+
+  if (lines.length > 0) {
+    lines.pop();
+  }
+
+  return lines;
+}
+
 export function buildInstagramPosterMarkdown(
   input: InstagramAssetRequest,
   language = 'en',
@@ -93,26 +99,25 @@ export function buildInstagramPosterMarkdown(
   const festival = input.festival;
   const flag = resolveCountryFlag(festival.country);
   const titleSuffix = flag ? ` ${flag}` : '';
+  const locationLine = formatLocationLine(festival);
   const lines = [
     `# ${festival.name.trim()}${titleSuffix}`,
     '',
     `## ${copy.sectionTitle}`,
     '',
-    '',
-    ...formatLocationBlock(festival),
-    '',
-    '',
+    ...(locationLine ? [locationLine] : []),
     `📅 ${formatPosterDates(festival, language)}`,
     '',
+    copy.separator,
     '',
   ];
 
   const lineup = formatLineupArtists(festival);
   if (lineup.length > 0) {
-    lines.push(copy.lineupHeading, '', ...lineup, '', '');
+    lines.push(copy.lineupHeading, '', ...lineup, '', copy.separator, '');
   }
 
-  lines.push(...copy.guideItems, '', '', copy.follow, '', copy.tagline, '');
+  lines.push(...formatGuideItems(copy.guideItems), '', copy.separator, '', copy.follow, '', copy.tagline, '');
 
   return lines.join('\n');
 }
