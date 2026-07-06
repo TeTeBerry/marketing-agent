@@ -75,4 +75,39 @@ if (probeRes.status === 503) {
   console.log('✓ Marketing-ai route reachable');
 }
 
+const assetsPath = baseUrl.endsWith('/api')
+  ? '/internal/marketing-ai/generate-instagram-assets'
+  : '/api/internal/marketing-ai/generate-instagram-assets';
+const assetsUrl = `${baseUrl}${assetsPath}`;
+
+console.log(`Checking instagram-assets route: ${assetsUrl}`);
+const assetsProbeRes = await fetch(assetsUrl, {
+  method: 'POST',
+  headers: {
+    'content-type': 'application/json',
+    'x-internal-api-key': apiKey,
+  },
+  body: JSON.stringify({}),
+});
+
+console.log(`Instagram-assets probe: HTTP ${assetsProbeRes.status}`);
+if (assetsProbeRes.status === 404) {
+  fail(
+    'Instagram assets route not found on production backend (HTTP 404). ' +
+      'Redeploy sync-app-backend with MarketingAiImageService, then re-run workflow.',
+  );
+}
+if (assetsProbeRes.status === 401) {
+  fail('Invalid INTERNAL_API_KEY for instagram-assets (HTTP 401).');
+}
+if (assetsProbeRes.status === 400) {
+  console.log('✓ Instagram-assets route reachable (validation rejected empty body as expected)');
+} else if (!assetsProbeRes.ok && assetsProbeRes.status !== 503) {
+  console.warn(
+    `⚠️  Unexpected instagram-assets probe status ${assetsProbeRes.status}`,
+  );
+} else {
+  console.log('✓ Instagram-assets route reachable');
+}
+
 console.log('Preflight passed');

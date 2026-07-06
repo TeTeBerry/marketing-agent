@@ -63,6 +63,8 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
 
+          git pull --rebase origin "${GITHUB_REF_NAME}"
+
           REPORT_FILE="${{ steps.report.outputs.report_file }}"
           git add "${REPORT_FILE}"
           if git diff --staged --quiet; then

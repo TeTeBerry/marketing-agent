@@ -1,7 +1,7 @@
 import { mkdir, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import type { MarketingPlatform, PlannedContentEntry } from '../types/index.js';
+import type { MarketingPlatform, PlannedContentEntry, PlannedContentFailure } from '../types/index.js';
 import type { VisualBrief } from '../types/visual-brief.js';
 import { renderInstagramPublishingPackage } from './instagram-markdown.js';
 import {
@@ -135,23 +135,41 @@ function renderPost(entry: PlannedContentEntry, postNumber: number): string[] {
   return lines;
 }
 
-function renderInstagramSection(entries: PlannedContentEntry[]): string[] {
+function renderInstagramSection(
+  entries: PlannedContentEntry[],
+  failures: PlannedContentFailure[],
+): string[] {
   const instagramEntry = entries.find(
     (entry) => entry.plan.platform === 'instagram',
   );
-  if (!instagramEntry?.instagramPackage) {
+  if (instagramEntry?.instagramPackage) {
+    return renderInstagramPublishingPackage(instagramEntry.instagramPackage);
+  }
+
+  const instagramFailure = failures.find(
+    (failure) => failure.platform === 'instagram',
+  );
+  if (!instagramFailure) {
     return [];
   }
 
-  return renderInstagramPublishingPackage(instagramEntry.instagramPackage);
+  return [
+    '## Instagram',
+    '',
+    '_Image generation failed — text content was not included._',
+    '',
+    `**Error:** ${instagramFailure.error}`,
+    '',
+  ];
 }
 
 function renderPlatformSection(
   platform: MarketingPlatform,
   entries: PlannedContentEntry[],
+  failures: PlannedContentFailure[],
 ): string[] {
   if (platform === 'instagram') {
-    return renderInstagramSection(entries);
+    return renderInstagramSection(entries, failures);
   }
 
   const platformEntries = entries.filter(
@@ -177,19 +195,21 @@ function renderPlatformSection(
 export async function writeDailyMarkdown(
   entries: PlannedContentEntry[],
   date = new Date(),
+  failures: PlannedContentFailure[] = [],
 ): Promise<string> {
   const outputPath = dailyMarkdownPath(date);
   await mkdir(path.dirname(outputPath), { recursive: true });
 
+  const failedCount = failures.length;
   const lines = [
     '# Raven Daily Content Plan',
     '',
-    `_${todayDateString(date)} · ${entries.length} planned post(s)_`,
+    `_${todayDateString(date)} · ${entries.length} planned post(s)${failedCount > 0 ? ` · ${failedCount} failed` : ''}_`,
     '',
   ];
 
   for (const platform of PLATFORM_SECTION_ORDER) {
-    lines.push(...renderPlatformSection(platform, entries));
+    lines.push(...renderPlatformSection(platform, entries, failures));
   }
 
   await writeFile(outputPath, `${lines.join('\n')}\n`, 'utf8');

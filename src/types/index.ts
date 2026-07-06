@@ -79,6 +79,12 @@ export type PlannedContentEntry = {
   instagramPackage?: import('./instagram-publishing-package.js').InstagramPublishingPackage;
 };
 
+export type PlannedContentFailure = {
+  topic: string;
+  platform: MarketingPlatform;
+  error: string;
+};
+
 export type {
   CarouselSlideAssetInput,
   InstagramAssetBrandStyle,

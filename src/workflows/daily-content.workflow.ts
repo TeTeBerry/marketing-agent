@@ -7,7 +7,7 @@ import {
 } from '../planner/content-planner.js';
 import { writeDailyMarkdown } from '../outputs/daily-markdown.js';
 import { mockFestivals } from '../sources/mock-festivals.js';
-import type { ContentPlan, Festival, PlannedContentEntry } from '../types/index.js';
+import type { ContentPlan, Festival, PlannedContentEntry, PlannedContentFailure } from '../types/index.js';
 import { buildInstagramAssetRequest } from '../writers/build-instagram-asset-request.js';
 import { buildInstagramPublishingPackage } from '../writers/build-instagram-package.js';
 import { mapPlanToApiRequest } from '../writers/plan-to-api.js';
@@ -48,6 +48,10 @@ async function generateInstagramEntry(
   const assetRequest = buildInstagramAssetRequest({ plan, festival, result });
   const assets = await generateInstagramAssets(assetRequest);
 
+  console.log(
+    `  ✓ Instagram images: ${assets.images.map((image) => image.imagePath).join(', ')}`,
+  );
+
   const instagramPackage = buildInstagramPublishingPackage({
     topic: plan.topic,
     result,
@@ -76,7 +80,10 @@ async function generateForPlan(
   return { plan: entry, festival, result };
 }
 
-export async function runDailyContentWorkflow(): Promise<string> {
+export async function runDailyContentWorkflow(): Promise<{
+  outputPath: string;
+  failures: PlannedContentFailure[];
+}> {
   const festivals = mockFestivals;
   const today = new Date();
 
@@ -88,8 +95,7 @@ export async function runDailyContentWorkflow(): Promise<string> {
   console.log(`Language: ${env.language}`);
 
   const entries: PlannedContentEntry[] = [];
-  const failures: Array<{ topic: string; platform: string; error: string }> =
-    [];
+  const failures: PlannedContentFailure[] = [];
 
   for (const [index, plan] of plans.entries()) {
     console.log(`\n[${index + 1}/${plans.length}] ${plan.platform.toUpperCase()}`);
@@ -122,14 +128,17 @@ export async function runDailyContentWorkflow(): Promise<string> {
     );
   }
 
-  const outputPath = await writeDailyMarkdown(entries, today);
+  const outputPath = await writeDailyMarkdown(entries, today, failures);
   console.log(`\nWrote ${entries.length} post(s) to ${outputPath}`);
 
   if (failures.length > 0) {
     console.warn(
       `\nWarning: ${failures.length} planned post(s) failed. Output contains partial results.`,
     );
+    for (const failure of failures) {
+      console.warn(`  - ${failure.platform}: ${failure.error}`);
+    }
   }
 
-  return outputPath;
+  return { outputPath, failures };
 }
