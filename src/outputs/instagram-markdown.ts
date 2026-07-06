@@ -9,6 +9,31 @@ function formatHashtags(hashtags: string[]): string {
   return hashtags.map((tag) => (tag.startsWith('#') ? tag : `#${tag}`)).join(' ');
 }
 
+function renderSlideImage(
+  slide: InstagramPublishingPackage['carousel'][number],
+): string[] {
+  const imageSrc = slide.imageLocalPath ?? slide.imageUrl;
+  if (imageSrc) {
+    const lines = [
+      'Image',
+      '',
+      `![Slide ${slide.slide}](${imageSrc})`,
+      '',
+    ];
+    if (slide.imagePath) {
+      lines.push(`_${slide.imagePath}_`, '');
+    }
+    return lines;
+  }
+
+  return [
+    'Image',
+    '',
+    slide.imagePath ?? '_pending generation_',
+    '',
+  ];
+}
+
 function renderCarouselSlide(
   slide: InstagramPublishingPackage['carousel'][number],
 ): string[] {
@@ -19,10 +44,7 @@ function renderCarouselSlide(
     '',
     slide.body,
     '',
-    'Image',
-    '',
-    slide.imagePath ?? '_pending generation_',
-    '',
+    ...renderSlideImage(slide),
     SECTION_DIVIDER,
     '',
   ];

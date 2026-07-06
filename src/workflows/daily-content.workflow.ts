@@ -5,12 +5,16 @@ import {
   planDailyContent,
   totalPlannedPosts,
 } from '../planner/content-planner.js';
-import { writeDailyMarkdown } from '../outputs/daily-markdown.js';
+import {
+  todayDateString,
+  writeDailyMarkdown,
+} from '../outputs/daily-markdown.js';
 import { mockFestivals } from '../sources/mock-festivals.js';
 import type { ContentPlan, Festival, PlannedContentEntry, PlannedContentFailure } from '../types/index.js';
 import { buildInstagramAssetRequest } from '../writers/build-instagram-asset-request.js';
 import { buildInstagramPublishingPackage } from '../writers/build-instagram-package.js';
 import { mapPlanToApiRequest } from '../writers/plan-to-api.js';
+import { downloadInstagramCarouselImages } from '../utils/download-instagram-images.js';
 import {
   isPromotionalXContent,
   X_PROMO_WARNING,
@@ -47,15 +51,19 @@ async function generateInstagramEntry(
 
   const assetRequest = buildInstagramAssetRequest({ plan, festival, result });
   const assets = await generateInstagramAssets(assetRequest);
+  const images = await downloadInstagramCarouselImages({
+    images: assets.images,
+    date: todayDateString(),
+  });
 
   console.log(
-    `  ✓ Instagram images: ${assets.images.map((image) => image.imagePath).join(', ')}`,
+    `  ✓ Instagram images: ${images.map((image) => image.imagePath).join(', ')}`,
   );
 
   const instagramPackage = buildInstagramPublishingPackage({
     topic: plan.topic,
     result,
-    images: assets.images,
+    images,
   });
 
   return { plan, festival, result, instagramPackage };

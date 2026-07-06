@@ -17,13 +17,18 @@ function mergeCarouselWithImages(
   images: InstagramGeneratedImage[],
 ): InstagramCarouselSlide[] {
   const imageBySlide = new Map(
-    images.map((image) => [image.slide, image.imagePath]),
+    images.map((image) => [image.slide, image]),
   );
 
-  return carousel.map((slide) => ({
-    ...slide,
-    imagePath: imageBySlide.get(slide.slide),
-  }));
+  return carousel.map((slide) => {
+    const image = imageBySlide.get(slide.slide);
+    return {
+      ...slide,
+      imagePath: image?.imagePath,
+      imageUrl: image?.imageUrl,
+      imageLocalPath: image?.imageLocalPath,
+    };
+  });
 }
 
 export function buildInstagramPublishingPackage(

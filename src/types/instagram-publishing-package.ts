@@ -46,12 +46,16 @@ export type InstagramCarouselSlide = {
   headline: string;
   body: string;
   imagePath?: string;
+  imageUrl?: string;
+  imageLocalPath?: string;
 };
 
 export type InstagramGeneratedImage = {
   slide: number;
   title: string;
   imagePath: string;
+  imageUrl: string;
+  imageLocalPath?: string;
   promptUsed?: string;
 };
 
