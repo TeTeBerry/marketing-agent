@@ -12,31 +12,16 @@ type BuildInstagramPackageInput = {
   images: InstagramGeneratedImage[];
 };
 
-function mergeCarouselWithImages(
-  carousel: InstagramCarouselSlide[],
-  images: InstagramGeneratedImage[],
-): InstagramCarouselSlide[] {
-  const imageBySlide = new Map(
-    images.map((image) => [image.slide, image]),
-  );
-
-  return carousel.map((slide) => {
-    const image = imageBySlide.get(slide.slide);
-    return {
-      ...slide,
-      imagePath: image?.imagePath,
-      imageUrl: image?.imageUrl,
-      imageLocalPath: image?.imageLocalPath,
-    };
-  });
-}
-
 export function buildInstagramPublishingPackage(
   input: BuildInstagramPackageInput,
 ): InstagramPublishingPackage {
-  const carousel = mergeCarouselWithImages(
-    input.result.carousel ?? [],
-    input.images,
+  const poster = input.images[0];
+  const carousel: InstagramCarouselSlide[] = (input.result.carousel ?? []).map(
+    (slide) => ({
+      slide: slide.slide,
+      headline: slide.headline,
+      body: slide.body,
+    }),
   );
 
   return {
@@ -44,6 +29,7 @@ export function buildInstagramPublishingPackage(
     caption: input.result.content,
     hashtags: input.result.hashtags,
     publishTime: input.result.publishTime ?? '18:30 GMT+7',
+    posterImagePath: poster?.imagePath,
     carousel,
     checklist: [...INSTAGRAM_PUBLISHING_CHECKLIST],
   };

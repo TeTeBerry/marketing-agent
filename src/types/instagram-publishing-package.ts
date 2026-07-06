@@ -6,6 +6,8 @@ export type InstagramAssetFestival = {
   dates?: string;
   genres?: string[];
   artists?: string[];
+  image?: string;
+  coverImageUrl?: string;
 };
 
 export type InstagramAssetPublishingPackage = {
@@ -25,19 +27,29 @@ export type InstagramAssetBrandStyle = {
   avoid: string[];
 };
 
+export type PosterSizeId =
+  | '4:5'
+  | '1:1'
+  | '9:16'
+  | '4:3'
+  | '16:9'
+  | 'mobile'
+  | 'desktop';
+
 export type CarouselSlideAssetInput = {
   slide: number;
   headline: string;
   body: string;
   imageDescription: string;
   overlayText: string[];
-  aspectRatio: '4:5';
+  aspectRatio: PosterSizeId;
 };
 
 export type InstagramAssetRequest = {
   festival: InstagramAssetFestival;
   publishingPackage: InstagramAssetPublishingPackage;
   brandStyle: InstagramAssetBrandStyle;
+  outputSize?: PosterSizeId;
   carousel: CarouselSlideAssetInput[];
 };
 
@@ -46,17 +58,17 @@ export type InstagramCarouselSlide = {
   headline: string;
   body: string;
   imagePath?: string;
-  imageUrl?: string;
-  imageLocalPath?: string;
 };
 
 export type InstagramGeneratedImage = {
   slide: number;
   title: string;
   imagePath: string;
-  imageUrl: string;
-  imageLocalPath?: string;
   promptUsed?: string;
+  width?: number;
+  height?: number;
+  sizeId?: PosterSizeId;
+  downloadUrl?: string;
 };
 
 export type InstagramPublishingPackage = {
@@ -64,23 +76,16 @@ export type InstagramPublishingPackage = {
   caption: string;
   hashtags: string[];
   publishTime: string;
+  posterImagePath?: string;
   carousel: InstagramCarouselSlide[];
   checklist: string[];
 };
-
-export const INSTAGRAM_PUBLISHING_CHECKLIST = [
-  'Review spelling',
-  'Verify lineup',
-  'Upload carousel',
-  'Paste caption',
-  'Paste hashtags',
-] as const;
 
 export const DEFAULT_RAVEN_BRAND_STYLE: InstagramAssetBrandStyle = {
   brandName: 'Raven',
   mood: 'premium',
   background: 'dark',
-  colorPalette: ['deep purple', 'electric blue', 'black'],
+  colorPalette: ['#8b7cf8', '#6e66e8', '#08080c'],
   typography: 'clean sans-serif',
   visualTone: [
     'festival travel',
@@ -97,6 +102,14 @@ export const DEFAULT_RAVEN_BRAND_STYLE: InstagramAssetBrandStyle = {
     'unreadable small text',
   ],
 };
+
+export const INSTAGRAM_PUBLISHING_CHECKLIST = [
+  'Review spelling',
+  'Verify lineup',
+  'Upload poster image',
+  'Paste caption',
+  'Paste hashtags',
+] as const;
 
 export type InstagramAssetsResult = {
   images: InstagramGeneratedImage[];

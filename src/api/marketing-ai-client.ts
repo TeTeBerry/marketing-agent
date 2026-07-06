@@ -1,4 +1,5 @@
 import { env, marketingAiEndpoint } from '../config/env.js';
+import { fetchBackend } from '../utils/backend-fetch.js';
 import type {
   ApiSuccessResponse,
   GeneratePlatformContentRequest,
@@ -16,12 +17,34 @@ export class MarketingAiApiError extends Error {
   }
 }
 
+export function formatMarketingAiApiError(
+  error: MarketingAiApiError,
+): string {
+  const backendMessage = parseBackendErrorMessage(error.body);
+  if (backendMessage) {
+    return `${error.message}: ${backendMessage}`;
+  }
+  return error.message;
+}
+
+function parseBackendErrorMessage(body?: string): string | undefined {
+  if (!body?.trim()) {
+    return undefined;
+  }
+  try {
+    const parsed = JSON.parse(body) as { message?: string };
+    return parsed.message?.trim() || undefined;
+  } catch {
+    return undefined;
+  }
+}
+
 export async function generatePlatformContent(
   request: GeneratePlatformContentRequest,
 ): Promise<PlatformContentResult> {
   const url = marketingAiEndpoint();
 
-  const response = await fetch(url, {
+  const response = await fetchBackend(url, {
     method: 'POST',
     headers: {
       'content-type': 'application/json',

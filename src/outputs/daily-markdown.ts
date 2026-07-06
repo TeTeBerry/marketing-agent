@@ -59,24 +59,21 @@ function renderVisualBrief(visualBrief?: VisualBrief): string[] {
   return [
     '### Visual Brief',
     '',
-    `**Visual Type:** ${visualBrief.visualType}`,
-    `**Aspect Ratio:** ${visualBrief.aspectRatio ?? '_unspecified_'}`,
-    `**Overlay Text:**`,
+    `Visual Type: ${visualBrief.visualType}`,
+    `Aspect Ratio: ${visualBrief.aspectRatio ?? '_unspecified_'}`,
+    'Overlay Text:',
     formatList(visualBrief.overlayText),
     '',
-    `**Assets Needed:**`,
+    'Assets Needed:',
     formatList(visualBrief.assetsNeeded),
     '',
-    `**Image Prompt:** ${visualBrief.imagePrompt ?? '_none_'}`,
-    '',
-    `**Video Prompt:** ${visualBrief.videoPrompt ?? '_none_'}`,
-    '',
-    `**Design Layout:**`,
+    `Image Prompt: ${visualBrief.imagePrompt ?? '_none_'}`,
+    `Video Prompt: ${visualBrief.videoPrompt ?? '_none_'}`,
+    'Design Layout:',
     visualBrief.designLayout ?? '_none_',
     '',
-    `**Reference Style:** ${visualBrief.referenceStyle ?? '_none_'}`,
-    '',
-    `**Notes:** ${visualBrief.notes ?? '_none_'}`,
+    `Reference Style: ${visualBrief.referenceStyle ?? '_none_'}`,
+    `Notes: ${visualBrief.notes ?? '_none_'}`,
     '',
   ];
 }
@@ -154,9 +151,9 @@ function renderInstagramSection(
   }
 
   return [
-    '## Instagram',
+    '# Instagram',
     '',
-    '_Image generation failed — text content was not included._',
+    '_Image generation failed — publishing package was not created._',
     '',
     `**Error:** ${instagramFailure.error}`,
     '',
@@ -210,6 +207,16 @@ export async function writeDailyMarkdown(
 
   for (const platform of PLATFORM_SECTION_ORDER) {
     lines.push(...renderPlatformSection(platform, entries, failures));
+  }
+
+  if (failedCount > 0) {
+    lines.push('## Failures', '');
+    for (const failure of failures) {
+      lines.push(
+        `- **${failure.platform}** (${failure.topic}): ${failure.error}`,
+        '',
+      );
+    }
   }
 
   await writeFile(outputPath, `${lines.join('\n')}\n`, 'utf8');

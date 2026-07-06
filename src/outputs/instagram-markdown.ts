@@ -9,42 +9,14 @@ function formatHashtags(hashtags: string[]): string {
   return hashtags.map((tag) => (tag.startsWith('#') ? tag : `#${tag}`)).join(' ');
 }
 
-function renderSlideImage(
-  slide: InstagramPublishingPackage['carousel'][number],
-): string[] {
-  const imageSrc = slide.imageLocalPath ?? slide.imageUrl;
-  if (imageSrc) {
-    const lines = [
-      'Image',
-      '',
-      `![Slide ${slide.slide}](${imageSrc})`,
-      '',
-    ];
-    if (slide.imagePath) {
-      lines.push(`_${slide.imagePath}_`, '');
-    }
-    return lines;
-  }
-
-  return [
-    'Image',
-    '',
-    slide.imagePath ?? '_pending generation_',
-    '',
-  ];
-}
-
-function renderCarouselSlide(
+function renderContentSection(
   slide: InstagramPublishingPackage['carousel'][number],
 ): string[] {
   return [
-    `### Slide ${slide.slide}`,
-    '',
-    slide.headline,
+    `### ${slide.slide}. ${slide.headline}`,
     '',
     slide.body,
     '',
-    ...renderSlideImage(slide),
     SECTION_DIVIDER,
     '',
   ];
@@ -80,12 +52,20 @@ export function renderInstagramPublishingPackage(
     '',
     SECTION_DIVIDER,
     '',
-    '## Carousel',
+    '## Poster Image',
+    '',
+    pkg.posterImagePath ?? '_pending generation_',
+    '',
+    SECTION_DIVIDER,
+    '',
+    '## Content Sections',
+    '',
+    '_Consolidated into the poster image above._',
     '',
   ];
 
   for (const slide of pkg.carousel) {
-    lines.push(...renderCarouselSlide(slide));
+    lines.push(...renderContentSection(slide));
   }
 
   lines.push(

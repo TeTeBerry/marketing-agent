@@ -85,9 +85,12 @@ export type PlannedContentFailure = {
   error: string;
 };
 
+export type { ContentPlan, PlanContentType } from './content-plan.js';
+export type { VisualBrief } from './visual-brief.js';
 export type {
   CarouselSlideAssetInput,
   InstagramAssetBrandStyle,
+  InstagramAssetFestival,
   InstagramAssetPublishingPackage,
   InstagramAssetRequest,
   InstagramAssetsResult,
@@ -95,6 +98,3 @@ export type {
   InstagramGeneratedImage,
   InstagramPublishingPackage,
 } from './instagram-publishing-package.js';
-
-export type { ContentPlan, PlanContentType } from './content-plan.js';
-export type { VisualBrief } from './visual-brief.js';

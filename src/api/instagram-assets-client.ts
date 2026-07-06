@@ -1,4 +1,5 @@
 import { env } from '../config/env.js';
+import { fetchBackend } from '../utils/backend-fetch.js';
 import type {
   ApiSuccessResponse,
   InstagramAssetRequest,
@@ -17,16 +18,18 @@ function instagramAssetsEndpoint(): string {
 export async function generateInstagramAssets(
   request: InstagramAssetRequest,
 ): Promise<InstagramAssetsResult> {
-  const url = instagramAssetsEndpoint();
-
-  const response = await fetch(url, {
-    method: 'POST',
-    headers: {
-      'content-type': 'application/json',
-      'x-internal-api-key': env.internalApiKey,
+  const response = await fetchBackend(
+    instagramAssetsEndpoint(),
+    {
+      method: 'POST',
+      headers: {
+        'content-type': 'application/json',
+        'x-internal-api-key': env.internalApiKey,
+      },
+      body: JSON.stringify(request),
     },
-    body: JSON.stringify(request),
-  });
+    { longRunning: true },
+  );
 
   const rawBody = await response.text();
 

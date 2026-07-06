@@ -1,16 +1,13 @@
 import type { ContentPlan } from '../types/content-plan.js';
 import type { Festival, PlatformContentResult } from '../types/index.js';
+import type { VisualBrief } from '../types/visual-brief.js';
 import {
   DEFAULT_RAVEN_BRAND_STYLE,
   type CarouselSlideAssetInput,
   type InstagramAssetRequest,
+  type PosterSizeId,
 } from '../types/instagram-publishing-package.js';
-
-type BuildInstagramAssetRequestInput = {
-  plan: ContentPlan;
-  festival: Festival;
-  result: PlatformContentResult;
-};
+import { resolveFestivalCoverImageKey } from '../utils/festival-activity-image.js';
 
 function formatFestivalDates(festival: Festival): string {
   const start = new Date(`${festival.startDate}T00:00:00Z`);
@@ -31,66 +28,40 @@ function formatFestivalDates(festival: Festival): string {
   return `${startMonth} ${start.getUTCDate()}–${endMonth} ${end.getUTCDate()}`;
 }
 
-function buildSlideImageDescription(
-  slide: NonNullable<PlatformContentResult['carousel']>[number],
-  festival: Festival,
-  slideIndex: number,
-  visualBriefImagePrompt?: string,
-): string {
-  if (slideIndex === 0 && visualBriefImagePrompt) {
-    return visualBriefImagePrompt.slice(0, 500);
+function resolvePosterSizeId(visualBrief?: VisualBrief): PosterSizeId {
+  const ratio = visualBrief?.aspectRatio;
+  if (
+    ratio === '1:1' ||
+    ratio === '4:5' ||
+    ratio === '9:16' ||
+    ratio === '16:9'
+  ) {
+    return ratio;
   }
-
-  return [
-    `Premium editorial festival travel visual for ${festival.name}`,
-    `highlighting "${slide.headline}"`,
-    slide.body ? `with context: ${slide.body}` : '',
-    'subtle stage light accents and clean negative space',
-  ]
-    .filter(Boolean)
-    .join(', ')
-    .slice(0, 500);
-}
-
-function buildSlideOverlayText(
-  slide: NonNullable<PlatformContentResult['carousel']>[number],
-  overlayLines: string[] | undefined,
-  slideIndex: number,
-): string[] {
-  const fromBrief = overlayLines?.[slideIndex]?.trim();
-  if (fromBrief) {
-    return [fromBrief];
-  }
-
-  return [slide.headline, slide.body].map((line) => line.trim()).filter(Boolean);
+  return '4:5';
 }
 
 function buildCarouselAssetInputs(
   result: PlatformContentResult,
-  festival: Festival,
 ): CarouselSlideAssetInput[] {
   const slides = result.carousel ?? [];
-  const overlayLines = result.visualBrief?.overlayText;
-  const visualBriefImagePrompt = result.visualBrief?.imagePrompt;
+  const aspectRatio = resolvePosterSizeId(result.visualBrief);
 
-  return slides.map((slide, index) => ({
+  return slides.map((slide) => ({
     slide: slide.slide,
     headline: slide.headline,
     body: slide.body,
-    imageDescription: buildSlideImageDescription(
-      slide,
-      festival,
-      index,
-      visualBriefImagePrompt,
-    ),
-    overlayText: buildSlideOverlayText(slide, overlayLines, index),
-    aspectRatio: '4:5' as const,
+    imageDescription: slide.headline,
+    overlayText: [slide.headline],
+    aspectRatio,
   }));
 }
 
-export function buildInstagramAssetRequest(
-  input: BuildInstagramAssetRequestInput,
-): InstagramAssetRequest {
+export function buildInstagramAssetRequest(input: {
+  plan: ContentPlan;
+  festival: Festival;
+  result: PlatformContentResult;
+}): InstagramAssetRequest {
   const { plan, festival, result } = input;
 
   return {
@@ -102,6 +73,7 @@ export function buildInstagramAssetRequest(
       dates: formatFestivalDates(festival),
       genres: festival.genres,
       artists: festival.headlineArtists,
+      image: resolveFestivalCoverImageKey(festival.id),
     },
     publishingPackage: {
       topic: plan.topic,
@@ -110,6 +82,6 @@ export function buildInstagramAssetRequest(
       publishTime: result.publishTime ?? '18:30 GMT+7',
     },
     brandStyle: DEFAULT_RAVEN_BRAND_STYLE,
-    carousel: buildCarouselAssetInputs(result, festival),
+    carousel: buildCarouselAssetInputs(result),
   };
 }

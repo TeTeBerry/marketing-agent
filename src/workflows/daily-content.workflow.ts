@@ -1,20 +1,31 @@
-import { generatePlatformContent } from '../api/marketing-ai-client.js';
+import {
+  generatePlatformContent,
+  MarketingAiApiError,
+  formatMarketingAiApiError,
+} from '../api/marketing-ai-client.js';
 import { generateInstagramAssets } from '../api/instagram-assets-client.js';
+import path from 'node:path';
 import { env } from '../config/env.js';
 import {
   planDailyContent,
   totalPlannedPosts,
 } from '../planner/content-planner.js';
-import {
-  todayDateString,
-  writeDailyMarkdown,
-} from '../outputs/daily-markdown.js';
+import { writeDailyMarkdown } from '../outputs/daily-markdown.js';
+import { saveInstagramImagesLocally } from '../outputs/save-instagram-images.js';
 import { mockFestivals } from '../sources/mock-festivals.js';
-import type { ContentPlan, Festival, PlannedContentEntry, PlannedContentFailure } from '../types/index.js';
+import type {
+  ContentPlan,
+  Festival,
+  PlannedContentEntry,
+  PlannedContentFailure,
+} from '../types/index.js';
 import { buildInstagramAssetRequest } from '../writers/build-instagram-asset-request.js';
 import { buildInstagramPublishingPackage } from '../writers/build-instagram-package.js';
 import { mapPlanToApiRequest } from '../writers/plan-to-api.js';
-import { downloadInstagramCarouselImages } from '../utils/download-instagram-images.js';
+import {
+  assertBackendReachable,
+  formatFetchError,
+} from '../utils/backend-health.js';
 import {
   isPromotionalXContent,
   X_PROMO_WARNING,
@@ -36,8 +47,9 @@ async function generateInstagramEntry(
 ): Promise<PlannedContentEntry> {
   console.log(`  → ${plan.platform} · ${plan.contentType} · ${plan.topic}`);
 
-  const apiRequest = mapPlanToApiRequest(plan, festival, env.brandVoice, env.language);
-  const result = await generatePlatformContent(apiRequest);
+  const result = await generatePlatformContent(
+    mapPlanToApiRequest(plan, festival, env.brandVoice, env.language),
+  );
 
   const carousel = result.carousel ?? [];
   if (carousel.length === 0) {
@@ -47,45 +59,41 @@ async function generateInstagramEntry(
     throw new Error('Instagram content requires a festival');
   }
 
-  console.log('  → generating Instagram carousel images…');
+  console.log('  → generating Instagram poster image via backend…');
 
   const assetRequest = buildInstagramAssetRequest({ plan, festival, result });
   const assets = await generateInstagramAssets(assetRequest);
-  const images = await downloadInstagramCarouselImages({
-    images: assets.images,
-    date: todayDateString(),
-  });
-
-  console.log(
-    `  ✓ Instagram images: ${images.map((image) => image.imagePath).join(', ')}`,
-  );
-
+  const savedImagePaths = await saveInstagramImagesLocally(assets.images);
   const instagramPackage = buildInstagramPublishingPackage({
     topic: plan.topic,
     result,
-    images,
+    images: assets.images,
   });
+
+  console.log(
+    `  ✓ Instagram poster saved: ${savedImagePaths.map((imagePath) => path.relative(process.cwd(), imagePath)).join(', ')}`,
+  );
 
   return { plan, festival, result, instagramPackage };
 }
 
 async function generateForPlan(
-  entry: PlannedContentEntry['plan'],
+  plan: ContentPlan,
   festivals: Festival[],
 ): Promise<PlannedContentEntry> {
-  const festival = resolveFestival(festivals, entry.festivalId);
+  const festival = resolveFestival(festivals, plan.festivalId);
 
-  if (entry.platform === 'instagram') {
-    return generateInstagramEntry(entry, festival);
+  if (plan.platform === 'instagram') {
+    return generateInstagramEntry(plan, festival);
   }
 
-  console.log(`  → ${entry.platform} · ${entry.contentType} · ${entry.topic}`);
+  console.log(`  → ${plan.platform} · ${plan.contentType} · ${plan.topic}`);
 
   const result = await generatePlatformContent(
-    mapPlanToApiRequest(entry, festival, env.brandVoice, env.language),
+    mapPlanToApiRequest(plan, festival, env.brandVoice, env.language),
   );
 
-  return { plan: entry, festival, result };
+  return { plan, festival, result };
 }
 
 export async function runDailyContentWorkflow(): Promise<{
@@ -94,6 +102,8 @@ export async function runDailyContentWorkflow(): Promise<{
 }> {
   const festivals = mockFestivals;
   const today = new Date();
+
+  await assertBackendReachable();
 
   const plans = planDailyContent({ festivals, date: today });
 
@@ -120,13 +130,19 @@ export async function runDailyContentWorkflow(): Promise<{
       }
     } catch (error) {
       const message =
-        error instanceof Error ? error.message : 'Unknown error';
+        error instanceof MarketingAiApiError
+          ? formatMarketingAiApiError(error)
+          : formatFetchError(error);
+      const backendHint =
+        message.includes('ECONNREFUSED') || message.includes('fetch failed')
+          ? ' (is sync-app-backend still running on port 3000?)'
+          : '';
       failures.push({
         topic: plan.topic,
         platform: plan.platform,
-        error: message,
+        error: `${message}${backendHint}`,
       });
-      console.error(`  ✗ ${message}`);
+      console.error(`  ✗ ${message}${backendHint}`);
     }
   }
 

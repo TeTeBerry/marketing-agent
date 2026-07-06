@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "type": "module",
-  "description": "Raven internal ops automation — daily marketing content via sync-app-backend Marketing AI API",
+  "description": "Raven internal ops automation — daily marketing copy and visual briefs via sync-app-backend",
   "scripts": {
     "daily": "tsx src/cli/daily.ts",
     "dev": "tsx watch src/cli/daily.ts",
@@ -11,7 +11,8 @@
     "test": "tsx --test test/content-planner.test.ts"
   },
   "dependencies": {
-    "dotenv": "^16.4.7"
+    "dotenv": "^16.4.7",
+    "undici": "^7.28.0"
   },
   "devDependencies": {
     "@types/node": "^22.10.2",
