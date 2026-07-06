@@ -153,7 +153,7 @@ function renderInstagramSection(
   return [
     '# Instagram',
     '',
-    '_Image generation failed — publishing package was not created._',
+    '_Publishing package was not created._',
     '',
     `**Error:** ${instagramFailure.error}`,
     '',

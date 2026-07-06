@@ -1,21 +1,22 @@
 import type { PlatformContentResult } from '../types/index.js';
+import { buildInstagramPosterMarkdown } from '../outputs/instagram-poster-markdown.js';
 import {
   INSTAGRAM_PUBLISHING_CHECKLIST,
+  type InstagramAssetRequest,
   type InstagramCarouselSlide,
-  type InstagramGeneratedImage,
   type InstagramPublishingPackage,
 } from '../types/instagram-publishing-package.js';
 
 type BuildInstagramPackageInput = {
   topic: string;
   result: PlatformContentResult;
-  images: InstagramGeneratedImage[];
+  assetRequest: InstagramAssetRequest;
+  language: string;
 };
 
 export function buildInstagramPublishingPackage(
   input: BuildInstagramPackageInput,
 ): InstagramPublishingPackage {
-  const poster = input.images[0];
   const carousel: InstagramCarouselSlide[] = (input.result.carousel ?? []).map(
     (slide) => ({
       slide: slide.slide,
@@ -29,7 +30,11 @@ export function buildInstagramPublishingPackage(
     caption: input.result.content,
     hashtags: input.result.hashtags,
     publishTime: input.result.publishTime ?? '18:30 GMT+7',
-    posterImagePath: poster?.imagePath,
+    assetRequest: input.assetRequest,
+    posterMarkdown: buildInstagramPosterMarkdown(
+      input.assetRequest,
+      input.language,
+    ),
     carousel,
     checklist: [...INSTAGRAM_PUBLISHING_CHECKLIST],
   };

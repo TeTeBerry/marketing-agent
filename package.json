@@ -8,7 +8,7 @@
     "daily": "tsx src/cli/daily.ts",
     "dev": "tsx watch src/cli/daily.ts",
     "typecheck": "tsc --noEmit",
-    "test": "tsx --test test/content-planner.test.ts"
+    "test": "tsx --test test/*.test.ts"
   },
   "dependencies": {
     "dotenv": "^16.4.7",

@@ -9,19 +9,6 @@ function formatHashtags(hashtags: string[]): string {
   return hashtags.map((tag) => (tag.startsWith('#') ? tag : `#${tag}`)).join(' ');
 }
 
-function renderContentSection(
-  slide: InstagramPublishingPackage['carousel'][number],
-): string[] {
-  return [
-    `### ${slide.slide}. ${slide.headline}`,
-    '',
-    slide.body,
-    '',
-    SECTION_DIVIDER,
-    '',
-  ];
-}
-
 export function renderInstagramPublishingPackage(
   pkg: InstagramPublishingPackage,
 ): string[] {
@@ -52,28 +39,21 @@ export function renderInstagramPublishingPackage(
     '',
     SECTION_DIVIDER,
     '',
-    '## Poster Image',
+    '## Poster Markdown',
     '',
-    pkg.posterImagePath ?? '_pending generation_',
+    '_Copy into Markdown Poster, edit as needed, then export PNG._',
+    '',
+    '```markdown',
+    pkg.posterMarkdown.trimEnd(),
+    '```',
     '',
     SECTION_DIVIDER,
     '',
-    '## Content Sections',
-    '',
-    '_Consolidated into the poster image above._',
-    '',
-  ];
-
-  for (const slide of pkg.carousel) {
-    lines.push(...renderContentSection(slide));
-  }
-
-  lines.push(
     '## Publishing Checklist',
     '',
     ...pkg.checklist.map((item) => `✓ ${item}`),
     '',
-  );
+  ];
 
   return lines;
 }

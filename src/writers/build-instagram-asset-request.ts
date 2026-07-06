@@ -4,6 +4,8 @@ import type { VisualBrief } from '../types/visual-brief.js';
 import {
   DEFAULT_RAVEN_BRAND_STYLE,
   type CarouselSlideAssetInput,
+  type FestivalLineupArtist,
+  type FestivalTimelineEntry,
   type InstagramAssetRequest,
   type PosterSizeId,
 } from '../types/instagram-publishing-package.js';
@@ -26,6 +28,19 @@ function formatFestivalDates(festival: Festival): string {
   }
 
   return `${startMonth} ${start.getUTCDate()}–${endMonth} ${end.getUTCDate()}`;
+}
+
+function buildMockTimeline(
+  artists: FestivalLineupArtist[],
+): FestivalTimelineEntry[] {
+  const times = ['6:30 PM', '9:00 PM', '11:30 PM', '1:00 AM'];
+
+  return artists.slice(0, 4).map((artist, index) => ({
+    time: times[index] ?? times[times.length - 1],
+    artistName: artist.name,
+    stageLabel: 'Main Stage',
+    genreLabel: artist.genreLabel,
+  }));
 }
 
 function resolvePosterSizeId(visualBrief?: VisualBrief): PosterSizeId {
@@ -63,16 +78,21 @@ export function buildInstagramAssetRequest(input: {
   result: PlatformContentResult;
 }): InstagramAssetRequest {
   const { plan, festival, result } = input;
+  const lineupSchedulePublished = festival.lineupSchedulePublished ?? false;
 
   return {
     festival: {
       id: festival.id,
       name: festival.name,
+      venue: festival.venue,
       location: festival.location,
       country: festival.country,
       dates: formatFestivalDates(festival),
-      genres: festival.genres,
-      artists: festival.headlineArtists,
+      lineupArtists: festival.headlineArtists,
+      lineupSchedulePublished,
+      timeline: lineupSchedulePublished
+        ? (festival.timeline ?? buildMockTimeline(festival.headlineArtists))
+        : undefined,
       image: resolveFestivalCoverImageKey(festival.id),
     },
     publishingPackage: {

@@ -3,15 +3,12 @@ import {
   MarketingAiApiError,
   formatMarketingAiApiError,
 } from '../api/marketing-ai-client.js';
-import { generateInstagramAssets } from '../api/instagram-assets-client.js';
-import path from 'node:path';
 import { env } from '../config/env.js';
 import {
   planDailyContent,
   totalPlannedPosts,
 } from '../planner/content-planner.js';
 import { writeDailyMarkdown } from '../outputs/daily-markdown.js';
-import { saveInstagramImagesLocally } from '../outputs/save-instagram-images.js';
 import { mockFestivals } from '../sources/mock-festivals.js';
 import type {
   ContentPlan,
@@ -59,20 +56,17 @@ async function generateInstagramEntry(
     throw new Error('Instagram content requires a festival');
   }
 
-  console.log('  → generating Instagram poster image via backend…');
+  console.log('  → building Instagram poster markdown…');
 
   const assetRequest = buildInstagramAssetRequest({ plan, festival, result });
-  const assets = await generateInstagramAssets(assetRequest);
-  const savedImagePaths = await saveInstagramImagesLocally(assets.images);
   const instagramPackage = buildInstagramPublishingPackage({
     topic: plan.topic,
     result,
-    images: assets.images,
+    assetRequest,
+    language: env.language,
   });
 
-  console.log(
-    `  ✓ Instagram poster saved: ${savedImagePaths.map((imagePath) => path.relative(process.cwd(), imagePath)).join(', ')}`,
-  );
+  console.log('  ✓ Instagram poster markdown ready (paste into Markdown Poster)');
 
   return { plan, festival, result, instagramPackage };
 }

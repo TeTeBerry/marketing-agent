@@ -1,4 +1,8 @@
 import type { ContentPlan } from './content-plan.js';
+import type {
+  FestivalLineupArtist,
+  FestivalTimelineEntry,
+} from './instagram-publishing-package.js';
 import type { VisualBrief } from './visual-brief.js';
 
 export const MARKETING_PLATFORMS = [
@@ -21,14 +25,22 @@ export type MarketingPlatform = (typeof MARKETING_PLATFORMS)[number];
 export type MarketingContentType = (typeof MARKETING_CONTENT_TYPES)[number];
 
 export type Festival = {
+  /** Matches sync-app-backend activity catalog legacyId when set. */
+  activityLegacyId?: number;
   id: string;
   name: string;
+  /** Festival site, e.g. Wisdom Valley — shown on poster dashboard line. */
+  venue: string;
+  /** City or region, e.g. Pattaya. */
   location: string;
   country: string;
   startDate: string;
   endDate: string;
   genres: string[];
-  headlineArtists: string[];
+  headlineArtists: FestivalLineupArtist[];
+  lineupSchedulePublished?: boolean;
+  /** Official timetable rows — only when lineupSchedulePublished is true. */
+  timeline?: FestivalTimelineEntry[];
   description: string;
   priority: number;
   ticketUrl?: string;
@@ -89,6 +101,8 @@ export type { ContentPlan, PlanContentType } from './content-plan.js';
 export type { VisualBrief } from './visual-brief.js';
 export type {
   CarouselSlideAssetInput,
+  FestivalLineupArtist,
+  FestivalTimelineEntry,
   InstagramAssetBrandStyle,
   InstagramAssetFestival,
   InstagramAssetPublishingPackage,

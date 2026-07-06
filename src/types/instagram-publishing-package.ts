@@ -1,11 +1,26 @@
+export type FestivalLineupArtist = {
+  name: string;
+  genreLabel: string;
+};
+
+export type FestivalTimelineEntry = {
+  time: string;
+  artistName: string;
+  stageLabel: string;
+  genreLabel: string;
+};
+
 export type InstagramAssetFestival = {
   id: string;
   name: string;
+  /** Festival site / venue, e.g. Wisdom Valley. */
+  venue?: string;
   location?: string;
   country?: string;
   dates?: string;
-  genres?: string[];
-  artists?: string[];
+  lineupArtists?: FestivalLineupArtist[];
+  lineupSchedulePublished?: boolean;
+  timeline?: FestivalTimelineEntry[];
   image?: string;
   coverImageUrl?: string;
 };
@@ -76,7 +91,8 @@ export type InstagramPublishingPackage = {
   caption: string;
   hashtags: string[];
   publishTime: string;
-  posterImagePath?: string;
+  assetRequest: InstagramAssetRequest;
+  posterMarkdown: string;
   carousel: InstagramCarouselSlide[];
   checklist: string[];
 };
@@ -106,7 +122,7 @@ export const DEFAULT_RAVEN_BRAND_STYLE: InstagramAssetBrandStyle = {
 export const INSTAGRAM_PUBLISHING_CHECKLIST = [
   'Review spelling',
   'Verify lineup',
-  'Upload poster image',
+  'Export poster from Markdown Poster',
   'Paste caption',
   'Paste hashtags',
 ] as const;

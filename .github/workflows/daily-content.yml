@@ -8,7 +8,7 @@ on:
 
 concurrency:
   group: daily-content-plan
-  cancel-in-progress: false
+  cancel-in-progress: true
 
 jobs:
   generate-and-publish:
@@ -20,6 +20,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -63,16 +65,27 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
 
-          git pull --rebase origin "${GITHUB_REF_NAME}"
-
           REPORT_FILE="${{ steps.report.outputs.report_file }}"
           git add "${REPORT_FILE}"
           if git diff --staged --quiet; then
             echo "No changes to commit"
-          else
-            git commit -m "chore(daily): content plan for $(basename "${REPORT_FILE}" .md)"
-            git push origin "HEAD:${GITHUB_REF_NAME}"
+            exit 0
           fi
+
+          git commit -m "chore(daily): content plan for $(basename "${REPORT_FILE}" .md)"
+
+          for attempt in 1 2 3 4 5; do
+            git pull --rebase origin "${GITHUB_REF_NAME}"
+            if git push origin "HEAD:${GITHUB_REF_NAME}"; then
+              echo "Pushed to ${GITHUB_REF_NAME}"
+              exit 0
+            fi
+            echo "Push rejected (attempt ${attempt}/5), retrying after rebase..."
+            sleep 3
+          done
+
+          echo "Failed to push after 5 attempts"
+          exit 1
 
       - name: Upload report artifact
         if: success()
