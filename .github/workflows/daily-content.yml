@@ -24,11 +24,18 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '22'
+          node-version: '24'
           cache: npm
 
       - name: Install dependencies
         run: npm ci
+
+      - name: Preflight backend and secrets
+        env:
+          BACKEND_INTERNAL_API_URL: ${{ secrets.BACKEND_INTERNAL_API_URL }}
+          INTERNAL_API_KEY: ${{ secrets.INTERNAL_API_KEY }}
+          FEISHU_WEBHOOK_URL: ${{ secrets.FEISHU_WEBHOOK_URL }}
+        run: node scripts/preflight-ci.mjs
 
       - name: Generate daily content plan
         id: daily
@@ -75,10 +82,15 @@ jobs:
 
       - name: Notify Feishu
         if: always()
+        continue-on-error: true
         env:
           FEISHU_WEBHOOK_URL: ${{ secrets.FEISHU_WEBHOOK_URL }}
         run: |
           set -euo pipefail
+          if [ -z "${FEISHU_WEBHOOK_URL}" ]; then
+            echo "Skipping Feishu notify: FEISHU_WEBHOOK_URL not configured"
+            exit 0
+          fi
           REPO_URL="https://github.com/${GITHUB_REPOSITORY}"
           RUN_URL="${REPO_URL}/actions/runs/${GITHUB_RUN_ID}"
           REPORT_FILE="${{ steps.report.outputs.report_file }}"
@@ -96,6 +108,6 @@ jobs:
           else
             node scripts/notify-feishu.mjs \
               --status failure \
-              --error "Daily generation failed. Check Actions logs and backend secrets." \
+              --error "Daily generation failed. See Preflight / Generate steps in Actions logs." \
               --run-url "${RUN_URL}"
           fi
