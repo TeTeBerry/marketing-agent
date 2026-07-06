@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import { afterEach, describe, it, mock } from 'node:test';
 import { mockFestivals } from '../src/sources/mock-festivals.js';
+import { normalizeFestivalsForEnglishReport } from '../src/utils/festival-english.js';
 
 describe('festival-source', () => {
   afterEach(() => {
@@ -50,7 +51,7 @@ describe('festival-source', () => {
     );
     const festivals = await loadUpcomingFestivals();
 
-    assert.deepEqual(festivals, mockFestivals);
+    assert.deepEqual(festivals, normalizeFestivalsForEnglishReport(mockFestivals));
   });
 
   it('falls back to mock festivals when API returns empty list', async () => {
@@ -69,6 +70,6 @@ describe('festival-source', () => {
     );
     const festivals = await loadUpcomingFestivals();
 
-    assert.deepEqual(festivals, mockFestivals);
+    assert.deepEqual(festivals, normalizeFestivalsForEnglishReport(mockFestivals));
   });
 });

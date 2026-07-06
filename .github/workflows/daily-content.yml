@@ -51,7 +51,7 @@ jobs:
           INTERNAL_API_KEY: ${{ secrets.INTERNAL_API_KEY }}
           BRAND_VOICE: ${{ vars.BRAND_VOICE }}
           CONTENT_TYPE: ${{ vars.CONTENT_TYPE }}
-          LANGUAGE: ${{ vars.LANGUAGE }}
+          LANGUAGE: en
         run: npm run daily
 
       - name: Resolve report file

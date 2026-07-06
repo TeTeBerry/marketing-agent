@@ -26,6 +26,8 @@ export const env = {
   contentType: (process.env.CONTENT_TYPE?.trim() ||
     'news') as MarketingContentType,
   language: process.env.LANGUAGE?.trim() || 'en',
+  /** Daily markdown reports are always generated in English. */
+  dailyReportLanguage: 'en' as const,
 };
 
 export function marketingAiEndpoint(): string {

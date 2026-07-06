@@ -45,7 +45,12 @@ async function generateInstagramEntry(
   console.log(`  → ${plan.platform} · ${plan.contentType} · ${plan.topic}`);
 
   const result = await generatePlatformContent(
-    mapPlanToApiRequest(plan, festival, env.brandVoice, env.language),
+    mapPlanToApiRequest(
+      plan,
+      festival,
+      env.brandVoice,
+      env.dailyReportLanguage,
+    ),
   );
 
   const carousel = result.carousel ?? [];
@@ -63,7 +68,7 @@ async function generateInstagramEntry(
     topic: plan.topic,
     result,
     assetRequest,
-    language: env.language,
+    language: env.dailyReportLanguage,
   });
 
   console.log('  ✓ Instagram poster markdown ready (paste into Markdown Poster)');
@@ -84,7 +89,12 @@ async function generateForPlan(
   console.log(`  → ${plan.platform} · ${plan.contentType} · ${plan.topic}`);
 
   const result = await generatePlatformContent(
-    mapPlanToApiRequest(plan, festival, env.brandVoice, env.language),
+    mapPlanToApiRequest(
+      plan,
+      festival,
+      env.brandVoice,
+      env.dailyReportLanguage,
+    ),
   );
 
   return { plan, festival, result };
@@ -104,7 +114,7 @@ export async function runDailyContentWorkflow(): Promise<{
   console.log(
     `Starting daily content workflow: ${totalPlannedPosts(plans)} planned post(s)`,
   );
-  console.log(`Language: ${env.language}`);
+  console.log(`Language: ${env.dailyReportLanguage} (daily report)`);
 
   const entries: PlannedContentEntry[] = [];
   const failures: PlannedContentFailure[] = [];

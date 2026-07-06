@@ -3,6 +3,7 @@ import { mockFestivals } from './mock-festivals.js';
 import type { ApiSuccessResponse, Festival } from '../types/index.js';
 import { fetchBackend } from '../utils/backend-fetch.js';
 import { formatFetchError } from '../utils/backend-health.js';
+import { normalizeFestivalsForEnglishReport } from '../utils/festival-english.js';
 
 type BackendFestival = Festival;
 
@@ -47,15 +48,15 @@ export async function loadUpcomingFestivals(): Promise<Festival[]> {
       console.warn(
         'Backend returned no upcoming festivals — falling back to mock data',
       );
-      return mockFestivals;
+      return normalizeFestivalsForEnglishReport(mockFestivals);
     }
 
     console.log(`Loaded ${festivals.length} upcoming festival(s) from backend`);
-    return festivals;
+    return normalizeFestivalsForEnglishReport(festivals);
   } catch (error) {
     console.warn(
       `Failed to load festivals from backend (${formatFetchError(error)}) — falling back to mock data`,
     );
-    return mockFestivals;
+    return normalizeFestivalsForEnglishReport(mockFestivals);
   }
 }
