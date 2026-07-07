@@ -95,6 +95,7 @@ export type InstagramPublishingPackage = {
   publishTime: string;
   assetRequest: InstagramAssetRequest;
   posterMarkdown: string;
+  posterImages: InstagramGeneratedImage[];
   carousel: InstagramCarouselSlide[];
   checklist: string[];
 };
@@ -124,7 +125,7 @@ export const DEFAULT_RAVEN_BRAND_STYLE: InstagramAssetBrandStyle = {
 export const INSTAGRAM_PUBLISHING_CHECKLIST = [
   'Review spelling',
   'Verify lineup',
-  'Export poster from Markdown Poster',
+  'Upload poster image to Instagram',
   'Paste caption',
   'Paste hashtags',
 ] as const;

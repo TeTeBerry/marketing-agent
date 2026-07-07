@@ -4,8 +4,6 @@ import type { VisualBrief } from '../types/visual-brief.js';
 import {
   DEFAULT_RAVEN_BRAND_STYLE,
   type CarouselSlideAssetInput,
-  type FestivalLineupArtist,
-  type FestivalTimelineEntry,
   type InstagramAssetRequest,
   type PosterSizeId,
 } from '../types/instagram-publishing-package.js';
@@ -30,19 +28,6 @@ function formatFestivalDates(festival: Festival): string {
   return `${startMonth} ${start.getUTCDate()}–${endMonth} ${end.getUTCDate()}`;
 }
 
-function buildMockTimeline(
-  artists: FestivalLineupArtist[],
-): FestivalTimelineEntry[] {
-  const times = ['6:30 PM', '9:00 PM', '11:30 PM', '1:00 AM'];
-
-  return artists.slice(0, 4).map((artist, index) => ({
-    time: times[index] ?? times[times.length - 1],
-    artistName: artist.name,
-    stageLabel: 'Main Stage',
-    genreLabel: artist.genreLabel,
-  }));
-}
-
 function resolvePosterSizeId(visualBrief?: VisualBrief): PosterSizeId {
   const ratio = visualBrief?.aspectRatio;
   if (
@@ -53,7 +38,7 @@ function resolvePosterSizeId(visualBrief?: VisualBrief): PosterSizeId {
   ) {
     return ratio;
   }
-  return '4:5';
+  return '1:1';
 }
 
 function buildCarouselAssetInputs(
@@ -78,7 +63,6 @@ export function buildInstagramAssetRequest(input: {
   result: PlatformContentResult;
 }): InstagramAssetRequest {
   const { plan, festival, result } = input;
-  const lineupSchedulePublished = festival.lineupSchedulePublished ?? false;
 
   return {
     festival: {
@@ -91,10 +75,6 @@ export function buildInstagramAssetRequest(input: {
       startDate: festival.startDate,
       endDate: festival.endDate,
       lineupArtists: festival.headlineArtists,
-      lineupSchedulePublished,
-      timeline: lineupSchedulePublished
-        ? (festival.timeline ?? buildMockTimeline(festival.headlineArtists))
-        : undefined,
       image: resolveFestivalCoverImageKey(festival.id),
     },
     publishingPackage: {

@@ -1,4 +1,5 @@
 import type { PlatformContentResult } from '../types/index.js';
+import type { InstagramGeneratedImage } from '../types/instagram-publishing-package.js';
 import { buildInstagramPosterMarkdown } from '../outputs/instagram-poster-markdown.js';
 import {
   INSTAGRAM_PUBLISHING_CHECKLIST,
@@ -12,6 +13,7 @@ type BuildInstagramPackageInput = {
   result: PlatformContentResult;
   assetRequest: InstagramAssetRequest;
   language: string;
+  posterImages?: InstagramGeneratedImage[];
 };
 
 export function buildInstagramPublishingPackage(
@@ -35,6 +37,7 @@ export function buildInstagramPublishingPackage(
       input.assetRequest,
       input.language,
     ),
+    posterImages: input.posterImages ?? [],
     carousel,
     checklist: [...INSTAGRAM_PUBLISHING_CHECKLIST],
   };

@@ -12,6 +12,7 @@ function formatHashtags(hashtags: string[]): string {
 export function renderInstagramPublishingPackage(
   pkg: InstagramPublishingPackage,
 ): string[] {
+  const posterImage = pkg.posterImages[0];
   const lines = [
     '# Instagram',
     '',
@@ -39,9 +40,33 @@ export function renderInstagramPublishingPackage(
     '',
     SECTION_DIVIDER,
     '',
+    '## Poster Image',
+    '',
+  ];
+
+  if (posterImage) {
+    lines.push(
+      `**File:** \`${posterImage.imagePath}\``,
+      '',
+      `**Size:** ${posterImage.sizeId ?? '1:1'} (${posterImage.width ?? '?'}×${posterImage.height ?? '?'})`,
+      '',
+    );
+    if (posterImage.downloadUrl) {
+      lines.push(`**Download:** ${posterImage.downloadUrl}`, '');
+    }
+    if (posterImage.promptUsed) {
+      lines.push(`**Render:** ${posterImage.promptUsed}`, '');
+    }
+  } else {
+    lines.push('_Poster image was not generated._', '');
+  }
+
+  lines.push(
+    SECTION_DIVIDER,
+    '',
     '## Poster Markdown',
     '',
-    '_Copy into Markdown Poster, edit as needed, then export PNG._',
+    '_Source copy used for the rendered poster (centered travel guide layout)._',
     '',
     '```markdown',
     pkg.posterMarkdown.trimEnd(),
@@ -53,7 +78,7 @@ export function renderInstagramPublishingPackage(
     '',
     ...pkg.checklist.map((item) => `✓ ${item}`),
     '',
-  ];
+  );
 
   return lines;
 }

@@ -87,7 +87,7 @@ const FESTIVAL_ENGLISH_BY_CODE: Record<
   },
   'ultra-europe': {
     location: 'Split',
-    venue: 'Poljud Stadium',
+    venue: 'Park Mladeži',
   },
   'tomorrowland-shanghai': {
     name: 'The Magic of Tomorrowland Shanghai 2026',
