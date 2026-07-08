@@ -27,6 +27,7 @@ const PLATFORM_HEADINGS: Record<MarketingPlatform, string> = {
   threads: 'Threads',
   instagram: 'Instagram',
   tiktok: 'TikTok',
+  seo: 'SEO',
   x: 'X',
   reddit: 'Reddit',
 };

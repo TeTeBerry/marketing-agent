@@ -7,17 +7,26 @@
   "scripts": {
     "daily": "tsx src/cli/daily.ts",
     "dev": "tsx watch src/cli/daily.ts",
-    "typecheck": "tsc --noEmit",
+    "preflight": "node scripts/preflight-dev.mjs",
+    "console:dev": "vite --config console/vite.config.ts",
+    "console:build": "vite build --config console/vite.config.ts",
+    "typecheck": "tsc --noEmit && tsc --noEmit -p console/tsconfig.json",
     "test": "tsx --test test/*.test.ts"
   },
   "dependencies": {
     "dotenv": "^16.4.7",
+    "react": "^19.2.0",
+    "react-dom": "^19.2.0",
     "undici": "^7.28.0"
   },
   "devDependencies": {
     "@types/node": "^22.10.2",
+    "@types/react": "^19.2.2",
+    "@types/react-dom": "^19.2.2",
+    "@vitejs/plugin-react": "^5.1.0",
     "tsx": "^4.19.2",
-    "typescript": "^5.7.2"
+    "typescript": "^5.7.2",
+    "vite": "^7.2.2"
   },
   "engines": {
     "node": ">=18.18.0"

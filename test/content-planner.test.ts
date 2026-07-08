@@ -23,7 +23,15 @@ describe('content-planner', () => {
 
     assert.ok(instagram);
     assert.equal(instagram.festivalId, 'tomorrowland-thailand-2026');
+    assert.equal(instagram.seriesType, 'lineup_breakdown');
     assert.equal(instagram.contentType, 'guide');
+  });
+
+  it('plans series-first content with seriesType on every plan', () => {
+    const plans = planDailyContent({ festivals: mockFestivals, date: today });
+    for (const plan of plans) {
+      assert.ok(plan.seriesType);
+    }
   });
 
   it('plans founder X post without festival binding', () => {

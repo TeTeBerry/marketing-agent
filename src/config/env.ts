@@ -1,5 +1,4 @@
 import { config as loadDotenv } from 'dotenv';
-import type { MarketingContentType } from '../types/index.js';
 
 loadDotenv();
 
@@ -23,25 +22,18 @@ export const env = {
   brandVoice:
     process.env.BRAND_VOICE?.trim() ||
     'Raven: sharp, festival-savvy, community-first. We help ravers discover lineups, plan trips, and find their crew — never corporate, never cringe.',
-  contentType: (process.env.CONTENT_TYPE?.trim() ||
-    'news') as MarketingContentType,
-  language: process.env.LANGUAGE?.trim() || 'en',
   /** Daily markdown reports are always generated in English. */
   dailyReportLanguage: 'en' as const,
 };
 
-export function marketingAiEndpoint(): string {
+export function marketingAiEndpointPath(action: string): string {
   const base = env.backendInternalApiUrl;
-  const path = base.endsWith('/api')
-    ? '/internal/marketing-ai/generate-platform-content'
-    : '/api/internal/marketing-ai/generate-platform-content';
-  return `${base}${path}`;
+  const prefix = base.endsWith('/api')
+    ? '/internal/marketing-ai'
+    : '/api/internal/marketing-ai';
+  return `${base}${prefix}/${action}`;
 }
 
 export function upcomingFestivalsEndpoint(): string {
-  const base = env.backendInternalApiUrl;
-  const path = base.endsWith('/api')
-    ? '/internal/marketing-ai/upcoming-festivals'
-    : '/api/internal/marketing-ai/upcoming-festivals';
-  return `${base}${path}`;
+  return marketingAiEndpointPath('upcoming-festivals');
 }

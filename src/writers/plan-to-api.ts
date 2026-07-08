@@ -4,19 +4,20 @@ import type {
   GeneratePlatformContentRequest,
   MarketingContentType,
 } from '../types/index.js';
+import type { ContentSeries } from '../types/content-series.js';
 
-const PLAN_TO_API_CONTENT_TYPE: Record<
-  ContentPlan['contentType'],
-  MarketingContentType
-> = {
-  news: 'news',
-  guide: 'guide',
-  discussion: 'discussion',
-  founder: 'discussion',
-  artist: 'guide',
-  tips: 'guide',
-  countdown: 'news',
-};
+const SERIES_TO_LEGACY_CONTENT_TYPE: Record<ContentSeries, MarketingContentType> =
+  {
+    festival_guide: 'seo',
+    travel_guide: 'guide',
+    lineup_breakdown: 'guide',
+    artist_spotlight: 'guide',
+    festival_intelligence: 'guide',
+    community_discussion: 'discussion',
+    budget_guide: 'guide',
+    packing_guide: 'guide',
+    news_update: 'news',
+  };
 
 const FOUNDER_FESTIVAL_CONTEXT = {
   context: 'founder-build-in-public',
@@ -36,18 +37,22 @@ export function mapPlanToApiRequest(
           ...FOUNDER_FESTIVAL_CONTEXT,
           planTopic: plan.topic,
           plannerContentType: plan.contentType,
+          seriesType: plan.seriesType,
         }
       : {
           ...festival,
           planTopic: plan.topic,
           plannerContentType: plan.contentType,
+          seriesType: plan.seriesType,
+          ...(plan.artistName ? { artistName: plan.artistName } : {}),
         };
 
   return {
     brandVoice,
     festival: festivalPayload,
     platform: plan.platform,
-    contentType: PLAN_TO_API_CONTENT_TYPE[plan.contentType],
+    contentType: SERIES_TO_LEGACY_CONTENT_TYPE[plan.seriesType],
     language,
+    seriesType: plan.seriesType,
   };
 }

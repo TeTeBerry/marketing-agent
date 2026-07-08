@@ -1,4 +1,4 @@
-import { env, marketingAiEndpoint } from '../config/env.js';
+import { env, marketingAiEndpointPath } from '../config/env.js';
 import { fetchBackend } from '../utils/backend-fetch.js';
 import type {
   ApiSuccessResponse,
@@ -39,48 +39,58 @@ function parseBackendErrorMessage(body?: string): string | undefined {
   }
 }
 
-export async function generatePlatformContent(
-  request: GeneratePlatformContentRequest,
-): Promise<PlatformContentResult> {
-  const url = marketingAiEndpoint();
-
-  const response = await fetchBackend(url, {
+async function postMarketingApi<T>(
+  action: string,
+  body: unknown,
+  errorLabel: string,
+): Promise<T> {
+  const response = await fetchBackend(marketingAiEndpointPath(action), {
     method: 'POST',
     headers: {
       'content-type': 'application/json',
       'x-internal-api-key': env.internalApiKey,
     },
-    body: JSON.stringify(request),
+    body: JSON.stringify(body),
   });
 
   const rawBody = await response.text();
 
   if (!response.ok) {
     throw new MarketingAiApiError(
-      `Marketing AI API failed (${response.status} ${response.statusText})`,
+      `${errorLabel} (${response.status} ${response.statusText})`,
       response.status,
       rawBody,
     );
   }
 
-  let parsed: ApiSuccessResponse<PlatformContentResult>;
+  let parsed: ApiSuccessResponse<T>;
   try {
-    parsed = JSON.parse(rawBody) as ApiSuccessResponse<PlatformContentResult>;
+    parsed = JSON.parse(rawBody) as ApiSuccessResponse<T>;
   } catch {
     throw new MarketingAiApiError(
-      'Marketing AI API returned invalid JSON',
+      `${errorLabel} returned invalid JSON`,
       response.status,
       rawBody,
     );
   }
 
-  if (parsed.code !== 200 || !parsed.data) {
+  if (parsed.code !== 200 || parsed.data == null) {
     throw new MarketingAiApiError(
-      `Marketing AI API error: ${parsed.message ?? 'unknown'}`,
+      `${errorLabel} error: ${parsed.message ?? 'unknown'}`,
       response.status,
       rawBody,
     );
   }
 
   return parsed.data;
+}
+
+export async function generatePlatformContent(
+  request: GeneratePlatformContentRequest,
+): Promise<PlatformContentResult> {
+  return postMarketingApi(
+    'generate-platform-content',
+    request,
+    'Marketing AI API failed',
+  );
 }

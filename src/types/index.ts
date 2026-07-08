@@ -9,6 +9,7 @@ export const MARKETING_PLATFORMS = [
   'threads',
   'instagram',
   'tiktok',
+  'seo',
   'x',
   'reddit',
 ] as const;
@@ -53,6 +54,7 @@ export type GeneratePlatformContentRequest = {
   platform: MarketingPlatform;
   contentType: MarketingContentType;
   language: string;
+  seriesType?: import('./content-series.js').ContentSeries;
 };
 
 export type PlatformContentResult = {
@@ -76,12 +78,6 @@ export type ApiSuccessResponse<T> = {
   code: number;
   message: string;
   data: T;
-};
-
-export type FestivalPlatformContent = {
-  festival: Festival;
-  platform: MarketingPlatform;
-  result: PlatformContentResult;
 };
 
 export type PlannedContentEntry = {
