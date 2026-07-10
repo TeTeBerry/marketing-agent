@@ -2,6 +2,7 @@
 const FESTIVAL_COVER_IMAGE_BY_ID: Record<string, string> = {
   'tomorrowland-thailand-2026': 'static/activity/tomorrowland.jpg',
   'ultra-japan-2026': 'static/activity/ultra-japan.jpg',
+  'ultra-taiwan-2026': 'static/activity/ultra-taiwan.jpg',
   'edc-thailand-2026': 'static/activity/edc-thailand.jpg',
   'storm-shenzhen-2026': 'static/activity/storm.webp',
   'edc-korea-2026': 'static/activity/edc-korea.png',

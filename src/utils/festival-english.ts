@@ -89,6 +89,10 @@ const FESTIVAL_ENGLISH_BY_CODE: Record<
     location: 'Split',
     venue: 'Park Mladeži',
   },
+  'ultra-taiwan': {
+    location: 'Taipei',
+    venue: 'Dajia Riverside Park',
+  },
   'tomorrowland-shanghai': {
     name: 'The Magic of Tomorrowland Shanghai 2026',
     location: 'Shanghai',
